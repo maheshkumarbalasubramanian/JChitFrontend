@@ -1,0 +1,187 @@
+<div class="add-fault-container">
+  <form [formGroup]="faultForm" (ngSubmit)="onSubmit()" class="fault-form">
+    <div class="header">
+      <h2>{{ isEditMode ? 'Edit' : 'Add New' }} Jewel Fault</h2>
+      <button type="button" class="close-btn" (click)="onCancel()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Loading State for Edit Mode -->
+    <div class="loading-state" *ngIf="isLoading && isEditMode" style="text-align: center; padding: 40px;">
+      <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: #007bff;"></i>
+      <p>Loading jewel fault data...</p>
+    </div>
+
+    <div class="form-content" *ngIf="!isLoading || !isEditMode">
+      <div class="field-group">
+        <label class="field-label">Fault Code <span class="required">*</span></label>
+        <input 
+          type="text" 
+          class="field-input" 
+          formControlName="faultCode" 
+          placeholder="Enter fault code (e.g., JF001)"
+          readonly
+          [class.invalid]="isFieldInvalid('faultCode')">
+        <div class="error-text" *ngIf="isFieldInvalid('faultCode')">
+          {{ getFieldError('faultCode') }}
+        </div>
+        <div class="field-hint">
+          Fault code is auto-generated and follows format JF001, JF002, etc.
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Item Group <span class="required">*</span></label>
+        <select 
+          class="field-input" 
+          formControlName="itemGroupId"
+          [class.invalid]="isFieldInvalid('itemGroupId')">
+          <option value="">Select item group</option>
+          <option *ngFor="let group of itemGroups" [value]="group.id">
+            {{ group.groupName }} ({{ group.groupCode }})
+          </option>
+        </select>
+        <div class="error-text" *ngIf="isFieldInvalid('itemGroupId')">
+          {{ getFieldError('itemGroupId') }}
+        </div>
+        <div class="field-hint">
+          Select the item group this fault applies to (Gold, Silver, etc.)
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Fault Name <span class="required">*</span></label>
+        <input 
+          type="text" 
+          class="field-input" 
+          formControlName="faultName" 
+          placeholder="Enter fault name (e.g., Denting, Stone Missing)"
+          [class.invalid]="isFieldInvalid('faultName')">
+        <div class="error-text" *ngIf="isFieldInvalid('faultName')">
+          {{ getFieldError('faultName') }}
+        </div>
+        <div class="field-hint">
+          Enter a descriptive name for the fault
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Fault Type <span class="required">*</span></label>
+        <select 
+          class="field-input" 
+          formControlName="faultType"
+          [class.invalid]="isFieldInvalid('faultType')">
+          <option value="">Select fault type</option>
+          <option *ngFor="let type of faultTypes" [value]="type.value">
+            {{ type.label }}
+          </option>
+        </select>
+        <div class="error-text" *ngIf="isFieldInvalid('faultType')">
+          {{ getFieldError('faultType') }}
+        </div>
+        <div class="field-hint">
+          Categorize the type of fault
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Severity Level <span class="required">*</span></label>
+        <div class="severity-options">
+          <label 
+            *ngFor="let level of severityLevels" 
+            class="severity-option"
+            [class.selected]="faultForm.get('severity')?.value === level.value">
+            <input 
+              type="radio" 
+              formControlName="severity" 
+              [value]="level.value"
+              class="severity-radio">
+            <div class="severity-content" [ngClass]="level.value.toLowerCase()">
+              <div class="severity-label">{{ level.label }}</div>
+              <div class="severity-description">{{ level.description }}</div>
+            </div>
+          </label>
+        </div>
+        <div class="error-text" *ngIf="isFieldInvalid('severity')">
+          {{ getFieldError('severity') }}
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Description</label>
+        <textarea 
+          class="field-input textarea-input" 
+          formControlName="description" 
+          placeholder="Enter detailed description of the fault (optional)"
+          rows="3"
+          [class.invalid]="isFieldInvalid('description')">
+        </textarea>
+        <div class="error-text" *ngIf="isFieldInvalid('description')">
+          {{ getFieldError('description') }}
+        </div>
+        <div class="field-hint">
+          Provide additional details about when and how this fault occurs
+        </div>
+      </div>
+
+      <div class="field-group">
+        <div class="checkbox-group">
+          <input 
+            type="checkbox" 
+            id="affectsValuation" 
+            formControlName="affectsValuation">
+          <label for="affectsValuation" class="checkbox-label">
+            <span class="checkbox-title">Affects Valuation</span>
+            <span class="checkbox-subtitle">Check if this fault impacts the jewelry's valuation</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="field-group" *ngIf="faultForm.get('affectsValuation')?.value">
+        <label class="field-label">Valuation Impact Percentage <span class="required">*</span></label>
+        <div class="percentage-input-group">
+          <input 
+            type="number" 
+            class="field-input percentage-input" 
+            formControlName="valuationImpactPercentage" 
+            placeholder="0"
+            min="0"
+            max="100"
+            step="0.1"
+            [class.invalid]="isFieldInvalid('valuationImpactPercentage')">
+          <span class="percentage-symbol">%</span>
+        </div>
+        <div class="error-text" *ngIf="isFieldInvalid('valuationImpactPercentage')">
+          {{ getFieldError('valuationImpactPercentage') }}
+        </div>
+        <div class="field-hint">
+          Enter the percentage by which this fault reduces the jewelry's value (0-100%)
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Status</label>
+        <select class="field-input" formControlName="isActive">
+          <option [value]="true">Active</option>
+          <option [value]="false">Inactive</option>
+        </select>
+        <div class="field-hint">
+          Set whether this fault is currently active and can be used
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions" *ngIf="!isLoading || !isEditMode">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="faultForm.invalid || isLoading">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }} Fault
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,232 @@
+<div class="item-groups-container">
+    <div class="header">
+      <h1>Item Groups</h1>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number">{{ stats.total }}</div>
+        <div class="stat-label">TOTAL</div>
+      </div>
+      <div class="stat-card active">
+        <div class="stat-number">{{ stats.active }}</div>
+        <div class="stat-label">ACTIVE</div>
+      </div>
+      <div class="stat-card inactive">
+        <div class="stat-number">{{ stats.inactive }}</div>
+        <div class="stat-label">INACTIVE</div>
+      </div>
+      <div class="stat-card recent">
+        <div class="stat-number">{{ stats.recent }}</div>
+        <div class="stat-label">RECENT</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="search-box">
+        <i class="fa fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search item groups..." 
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()">
+      </div>
+      <div class="controls-right">
+        <button 
+          class="btn btn-outline" 
+          (click)="toggleFilter()"
+          [class.active]="showFilters">
+          <i class="fa fa-filter"></i>
+        </button>
+        <div class="view-toggle">
+          <button 
+            [class.active]="viewMode === 'grid'"
+            (click)="setViewMode('grid')">
+            <i class="fa fa-th"></i>
+          </button>
+          <button 
+            [class.active]="viewMode === 'list'"
+            (click)="setViewMode('list')">
+            <i class="fa fa-list"></i>
+          </button>
+        </div>
+        <button 
+          class="btn btn-outline" 
+          (click)="refreshData()"
+          [disabled]="isLoading">
+          <i class="fa fa-sync" [class.fa-spin]="isLoading"></i>
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="addNewGroup()">
+          <i class="fa fa-plus"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section" *ngIf="showFilters">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Status:</label>
+          <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+            <option value="">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Items Count:</label>
+          <select [(ngModel)]="itemCountFilter" (change)="applyFilters()">
+            <option value="">All</option>
+            <option value="hasItems">Has Items</option>
+            <option value="noItems">No Items</option>
+          </select>
+        </div>
+        <button class="btn btn-outline btn-sm" (click)="clearFilters()">
+          <i class="fa fa-times"></i> Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <div class="list-controls">
+      <div class="list-info">
+        Showing {{ filteredGroups.length }} of {{ itemGroups.length }} item groups
+      </div>
+      <div class="sort-controls">
+        <span>Sort by:</span>
+        <select [(ngModel)]="sortBy" (change)="applySorting()">
+          <option value="groupName">Group Name</option>
+          <option value="groupCode">Group Code</option>
+          <option value="itemCount">Item Count</option>
+          <option value="createdDate">Date Created</option>
+        </select>
+        <button 
+          class="btn btn-outline sort-direction" 
+          (click)="toggleSortDirection()"
+          [title]="sortDirection === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
+          <i class="fa" [class.fa-arrow-up]="sortDirection === 'asc'" [class.fa-arrow-down]="sortDirection === 'desc'"></i>
+        </button>
+      </div>
+      <div class="select-all">
+        <input 
+          type="checkbox" 
+          id="selectAll"
+          [checked]="isAllSelected()"
+          [indeterminate]="isSomeSelected()"
+          (change)="toggleSelectAll($event)">
+        <label for="selectAll">Select All</label>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="isLoading">
+      <i class="fa fa-spinner fa-spin"></i>
+      <p>Loading item groups...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!isLoading && filteredGroups.length === 0">
+      <i class="fa fa-layer-group"></i>
+      <h3>No item groups found</h3>
+      <p *ngIf="searchTerm || statusFilter || itemCountFilter">
+        Try adjusting your search criteria or filters
+      </p>
+      <p *ngIf="!searchTerm && !statusFilter && !itemCountFilter">
+        Create your first item group to get started
+      </p>
+      <button class="btn btn-primary" (click)="addNewGroup()">
+        <i class="fa fa-plus"></i> Add Item Group
+      </button>
+    </div>
+
+    <!-- Groups Grid/List -->
+    <div 
+      class="groups-container" 
+      [class.grid-view]="viewMode === 'grid'"
+      [class.list-view]="viewMode === 'list'"
+      *ngIf="!isLoading && filteredGroups.length > 0">
+      
+      <div 
+        *ngFor="let group of filteredGroups; trackBy: trackByGroupId" 
+        class="group-card"
+        [class.selected]="isSelected(group.id)"
+        (click)="selectGroup(group)">
+        
+        <input 
+          type="checkbox" 
+          class="checkbox"
+          [checked]="isSelected(group.id)"
+          (click)="$event.stopPropagation()"
+          (change)="toggleSelection(group.id, $event)">
+        
+        <div class="status-badge" [class.active]="group.isActive" [class.inactive]="!group.isActive">
+          {{ group.isActive ? 'ACTIVE' : 'INACTIVE' }}
+        </div>
+        
+        <div class="group-avatar" [ngClass]="getGroupAvatarClass(group.groupName)">
+          {{ getGroupInitials(group.groupName) }}
+        </div>
+        
+        <div class="group-content">
+          <div class="group-name">{{ group.groupName }}</div>
+          <div class="group-code">{{ group.groupCode }}</div>
+          <div class="group-description" *ngIf="group.description">
+            {{ group.description }}
+          </div>
+          <div class="group-name-tamil" *ngIf="group.groupNameTamil">
+            {{ group.groupNameTamil }}
+          </div>
+        </div>
+        
+        <div class="group-stats">
+          <div class="group-stat">
+            <div class="group-stat-number">{{ group.itemCount }}</div>
+            <div class="group-stat-label">Items</div>
+          </div>
+          <!-- <div class="group-stat">
+            <div class="group-stat-number">{{ group.purityCount }}</div>
+            <div class="group-stat-label">Purities</div>
+          </div> -->
+          <!-- <div class="group-stat">
+            <div class="group-stat-number">{{ group.recentCount }}</div>
+            <div class="group-stat-label">Recent</div>
+          </div> -->
+        </div>
+        
+        <div class="group-actions" (click)="$event.stopPropagation()">
+          <button 
+            class="action-btn edit" 
+            (click)="editGroup(group)"
+            title="Edit Group">
+            <i class="fa fa-edit"></i>
+          </button>
+          <button 
+            class="action-btn delete" 
+            (click)="deleteGroup(group)"
+            title="Delete Group"
+            [disabled]="group.itemCount > 0">
+            <i class="fa fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="bulk-actions" *ngIf="selectedGroups.size > 0">
+      <div class="bulk-info">
+        {{ selectedGroups.size }} group(s) selected
+      </div>
+      <div class="bulk-buttons">
+        <button class="btn btn-outline" (click)="bulkActivate()">
+          <i class="fa fa-check"></i> Activate
+        </button>
+        <button class="btn btn-outline" (click)="bulkDeactivate()">
+          <i class="fa fa-times"></i> Deactivate
+        </button>
+        <button class="btn btn-danger" (click)="bulkDelete()">
+          <i class="fa fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,465 @@
+<div class="view-container">
+    <div class="header-section">
+      <div class="page-title">
+        <i class="icon-view"></i>
+        <h1>View Redemptions</h1>
+        <span class="count-badge">{{ totalRedemptions }} Records</span>
+      </div>
+      <div class="header-actions">
+        <button class="btn-create" (click)="createNew()">
+          <i class="icon-plus"></i> Create New
+        </button>
+        <button class="btn-export" (click)="exportData()">
+          <i class="icon-download"></i> Export
+        </button>
+        <button class="btn-print" (click)="printData()">
+          <i class="icon-print"></i> Print
+        </button>
+      </div>
+    </div>
+  
+    <div class="filter-section">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>From Date</label>
+          <input type="date" class="filter-input" [(ngModel)]="filters.fromDate" (change)="applyFilters()">
+        </div>
+        
+        <div class="filter-group">
+          <label>To Date</label>
+          <input type="date" class="filter-input" [(ngModel)]="filters.toDate" (change)="applyFilters()">
+        </div>
+        
+        <div class="filter-group">
+          <label>Customer</label>
+          <input type="text" class="filter-input" [(ngModel)]="filters.customer" (input)="applyFilters()" placeholder="Search customer">
+        </div>
+        
+        <div class="filter-group">
+          <label>Redemption No</label>
+          <input type="text" class="filter-input" [(ngModel)]="filters.redemptionNo" (input)="applyFilters()" placeholder="Search redemption">
+        </div>
+        
+        <div class="filter-group">
+          <label>Loan No</label>
+          <input type="text" class="filter-input" [(ngModel)]="filters.loanNo" (input)="applyFilters()" placeholder="Search loan">
+        </div>
+  
+        <div class="filter-group">
+          <label>Payment Type</label>
+          <select class="filter-input" [(ngModel)]="filters.paymentType" (change)="applyFilters()">
+            <option value="">All</option>
+            <option value="interest">Interest Only</option>
+            <option value="full">Full Payment</option>
+          </select>
+        </div>
+  
+        <div class="filter-group">
+          <label>Status</label>
+          <select class="filter-input" [(ngModel)]="filters.status" (change)="applyFilters()">
+            <option value="">All</option>
+            <option value="completed">Completed</option>
+            <option value="partial">Partial</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        
+        <div class="filter-actions">
+          <button class="btn-search" (click)="applyFilters()">
+            <i class="icon-search"></i> Search
+          </button>
+          <button class="btn-reset" (click)="resetFilters()">
+            <i class="icon-refresh"></i> Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="card-icon total">
+          <i class="icon-list"></i>
+        </div>
+        <div class="card-content">
+          <h3>Total Redemptions</h3>
+          <p class="card-value">{{ statistics.totalRedemptions }}</p>
+        </div>
+      </div>
+  
+      <div class="summary-card">
+        <div class="card-icon amount">
+          <i class="icon-money"></i>
+        </div>
+        <div class="card-content">
+          <h3>Total Amount</h3>
+          <p class="card-value">₹{{ statistics.totalAmount | number:'1.2-2' }}</p>
+        </div>
+      </div>
+  
+      <div class="summary-card">
+        <div class="card-icon interest">
+          <i class="icon-percent"></i>
+        </div>
+        <div class="card-content">
+          <h3>Total Interest</h3>
+          <p class="card-value">₹{{ statistics.totalInterest | number:'1.2-2' }}</p>
+        </div>
+      </div>
+  
+      <div class="summary-card">
+        <div class="card-icon principal">
+          <i class="icon-wallet"></i>
+        </div>
+        <div class="card-content">
+          <h3>Total Principal</h3>
+          <p class="card-value">₹{{ statistics.totalPrincipal | number:'1.2-2' }}</p>
+        </div>
+      </div>
+    </div>
+  
+    <div class="table-container">
+      <div class="table-header">
+        <div class="table-title">Redemption Records</div>
+        <div class="table-actions">
+          <div class="view-toggle">
+            <button 
+              class="toggle-btn" 
+              [class.active]="viewMode === 'table'" 
+              (click)="viewMode = 'table'">
+              <i class="icon-table"></i> Table
+            </button>
+            <button 
+              class="toggle-btn" 
+              [class.active]="viewMode === 'card'" 
+              (click)="viewMode = 'card'">
+              <i class="icon-grid"></i> Cards
+            </button>
+          </div>
+          <div class="pagination-info">
+            Showing {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredRedemptions.length) }} of {{ filteredRedemptions.length }}
+          </div>
+        </div>
+      </div>
+  
+      <!-- Table View -->
+      <div class="table-wrapper" *ngIf="viewMode === 'table'">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th (click)="sortBy('redemptionNo')">
+                Redemption No
+                <i class="sort-icon" [class.active]="sortColumn === 'redemptionNo'"></i>
+              </th>
+              <th (click)="sortBy('redemptionDate')">
+                Date
+                <i class="sort-icon" [class.active]="sortColumn === 'redemptionDate'"></i>
+              </th>
+              <th (click)="sortBy('loanNo')">
+                Loan No
+                <i class="sort-icon" [class.active]="sortColumn === 'loanNo'"></i>
+              </th>
+              <th (click)="sortBy('customerName')">
+                Customer
+                <i class="sort-icon" [class.active]="sortColumn === 'customerName'"></i>
+              </th>
+              <th>Item Group</th>
+              <th (click)="sortBy('principal')">
+                Principal
+                <i class="sort-icon" [class.active]="sortColumn === 'principal'"></i>
+              </th>
+              <th (click)="sortBy('interest')">
+                Interest
+                <i class="sort-icon" [class.active]="sortColumn === 'interest'"></i>
+              </th>
+              <th (click)="sortBy('netPayable')">
+                Net Payable
+                <i class="sort-icon" [class.active]="sortColumn === 'netPayable'"></i>
+              </th>
+              <th>Payment Type</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let redemption of paginatedRedemptions" class="table-row">
+              <td (click)="viewDetails(redemption)">
+                <span class="redemption-badge">{{ redemption.redemptionNo }}</span>
+              </td>
+              <td (click)="viewDetails(redemption)">{{ redemption.redemptionDate }}</td>
+              <td (click)="viewDetails(redemption)">
+                <span class="loan-link">{{ redemption.loanNo }}</span>
+              </td>
+              <td (click)="viewDetails(redemption)">
+                <div class="customer-cell">
+                  <img [src]="redemption.customerPhoto" alt="Customer" class="customer-thumb">
+                  <div>
+                    <div class="customer-name">{{ redemption.customerName }}</div>
+                    <div class="customer-code">{{ redemption.customerCode }}</div>
+                  </div>
+                </div>
+              </td>
+              <td (click)="viewDetails(redemption)">
+                <span class="item-badge" [class]="redemption.itemGroup.toLowerCase()">
+                  {{ redemption.itemGroup }}
+                </span>
+              </td>
+              <td class="amount-cell" (click)="viewDetails(redemption)">₹{{ redemption.principal | number:'1.2-2' }}</td>
+              <td class="amount-cell" (click)="viewDetails(redemption)">₹{{ redemption.interest | number:'1.2-2' }}</td>
+              <td class="amount-cell highlight" (click)="viewDetails(redemption)">₹{{ redemption.netPayable | number:'1.2-2' }}</td>
+              <td (click)="viewDetails(redemption)">
+                <span class="payment-type-badge" [class]="redemption.paymentType">
+                  {{ redemption.paymentType === 'full' ? 'Full Payment' : 'Interest Only' }}
+                </span>
+              </td>
+              <td (click)="viewDetails(redemption)">
+                <span class="status-badge" [class]="redemption.status">
+                  {{ redemption.status }}
+                </span>
+              </td>
+              <td class="actions-cell" (click)="$event.stopPropagation()">
+                <div class="action-buttons-group">
+                  <button class="action-btn view" (click)="viewDetails(redemption)" title="View">
+                    <i class="icon-eye">👁️</i>
+                  </button>
+                  <button class="action-btn edit" (click)="editRedemption(redemption)" title="Edit">
+                    <i class="icon-edit">✏️</i>
+                  </button>
+                  <button class="action-btn print" (click)="printRedemption(redemption)" title="Print">
+                    <i class="icon-print">🖨️</i>
+                  </button>
+                  <button class="action-btn delete" (click)="deleteRedemption(redemption)" title="Delete">
+                    <i class="icon-delete">🗑️</i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <div class="no-data" *ngIf="filteredRedemptions.length === 0">
+          <i class="icon-empty"></i>
+          <p>No redemptions found</p>
+          <button class="btn-create-inline" (click)="createNew()">Create New Redemption</button>
+        </div>
+      </div>
+  
+      <!-- Card View -->
+      <div class="cards-grid" *ngIf="viewMode === 'card'">
+        <div class="redemption-card" *ngFor="let redemption of paginatedRedemptions" (click)="viewDetails(redemption)">
+          <div class="card-header">
+            <div class="header-left">
+              <span class="redemption-badge">{{ redemption.redemptionNo }}</span>
+              <span class="date">{{ redemption.redemptionDate }}</span>
+            </div>
+            <span class="status-badge" [class]="redemption.status">{{ redemption.status }}</span>
+          </div>
+  
+          <div class="card-customer">
+            <img [src]="redemption.customerPhoto" alt="Customer" class="customer-avatar">
+            <div class="customer-details">
+              <h4>{{ redemption.customerName }}</h4>
+              <p>{{ redemption.customerCode }} | {{ redemption.phone }}</p>
+            </div>
+          </div>
+  
+          <div class="card-divider"></div>
+  
+          <div class="card-info">
+            <div class="info-row">
+              <span class="label">Loan No:</span>
+              <span class="value loan-link">{{ redemption.loanNo }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Item Group:</span>
+              <span class="item-badge" [class]="redemption.itemGroup.toLowerCase()">{{ redemption.itemGroup }}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Payment Type:</span>
+              <span class="payment-type-badge" [class]="redemption.paymentType">
+                {{ redemption.paymentType === 'full' ? 'Full Payment' : 'Interest Only' }}
+              </span>
+            </div>
+          </div>
+  
+          <div class="card-divider"></div>
+  
+          <div class="card-amounts">
+            <div class="amount-item">
+              <span class="amount-label">Principal</span>
+              <span class="amount-value">₹{{ redemption.principal | number:'1.2-2' }}</span>
+            </div>
+            <div class="amount-item">
+              <span class="amount-label">Interest</span>
+              <span class="amount-value">₹{{ redemption.interest | number:'1.2-2' }}</span>
+            </div>
+            <div class="amount-item total">
+              <span class="amount-label">Net Payable</span>
+              <span class="amount-value">₹{{ redemption.netPayable | number:'1.2-2' }}</span>
+            </div>
+          </div>
+  
+          <div class="card-actions" (click)="$event.stopPropagation()">
+            <button class="card-action-btn" (click)="viewDetails(redemption)">
+              <i class="icon-eye"></i>
+            </button>
+            <button class="card-action-btn" (click)="editRedemption(redemption)">
+              <i class="icon-edit"></i>
+            </button>
+            <button class="card-action-btn" (click)="printRedemption(redemption)">
+              <i class="icon-print"></i>
+            </button>
+            <button class="card-action-btn delete" (click)="deleteRedemption(redemption)">
+              <i class="icon-delete"></i>
+            </button>
+          </div>
+        </div>
+  
+        <div class="no-data" *ngIf="filteredRedemptions.length === 0">
+          <i class="icon-empty"></i>
+          <p>No redemptions found</p>
+          <button class="btn-create-inline" (click)="createNew()">Create New Redemption</button>
+        </div>
+      </div>
+  
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="filteredRedemptions.length > 0">
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="goToPage(1)">
+          <i class="icon-first"></i>
+        </button>
+        <button class="page-btn" [disabled]="currentPage === 1" (click)="previousPage()">
+          <i class="icon-prev"></i>
+        </button>
+        
+        <div class="page-numbers">
+          <button 
+            *ngFor="let page of getPageNumbers()" 
+            class="page-number" 
+            [class.active]="page === currentPage"
+            (click)="goToPage(page)">
+            {{ page }}
+          </button>
+        </div>
+        
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="nextPage()">
+          <i class="icon-next"></i>
+        </button>
+        <button class="page-btn" [disabled]="currentPage === totalPages" (click)="goToPage(totalPages)">
+          <i class="icon-last"></i>
+        </button>
+  
+        <div class="page-size-selector">
+          <label>Show:</label>
+          <select [(ngModel)]="pageSize" (change)="onPageSizeChange()">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Detail Modal -->
+  <div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+    <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Redemption Details</h2>
+        <button class="close-btn" (click)="closeDetailModal()">×</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="selectedRedemption">
+        <div class="detail-grid">
+          <div class="detail-section">
+            <h3>Redemption Information</h3>
+            <div class="detail-row">
+              <span class="label">Redemption No:</span>
+              <span class="value">{{ selectedRedemption.redemptionNo }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Date:</span>
+              <span class="value">{{ selectedRedemption.redemptionDate }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Status:</span>
+              <span class="status-badge" [class]="selectedRedemption.status">{{ selectedRedemption.status }}</span>
+            </div>
+          </div>
+  
+          <div class="detail-section">
+            <h3>Customer Information</h3>
+            <div class="customer-detail">
+              <img [src]="selectedRedemption.customerPhoto" alt="Customer" class="detail-customer-photo">
+              <div>
+                <div class="detail-row">
+                  <span class="label">Name:</span>
+                  <span class="value">{{ selectedRedemption.customerName }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Code:</span>
+                  <span class="value">{{ selectedRedemption.customerCode }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="label">Phone:</span>
+                  <span class="value">{{ selectedRedemption.phone }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          <div class="detail-section">
+            <h3>Loan Information</h3>
+            <div class="detail-row">
+              <span class="label">Loan No:</span>
+              <span class="value">{{ selectedRedemption.loanNo }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Loan Date:</span>
+              <span class="value">{{ selectedRedemption.loanDate }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Item Group:</span>
+              <span class="item-badge" [class]="selectedRedemption.itemGroup.toLowerCase()">{{ selectedRedemption.itemGroup }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Scheme:</span>
+              <span class="value">{{ selectedRedemption.scheme }}</span>
+            </div>
+          </div>
+  
+          <div class="detail-section">
+            <h3>Payment Details</h3>
+            <div class="detail-row">
+              <span class="label">Payment Type:</span>
+              <span class="payment-type-badge" [class]="selectedRedemption.paymentType">
+                {{ selectedRedemption.paymentType === 'full' ? 'Full Payment' : 'Interest Only' }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Principal:</span>
+              <span class="value amount">₹{{ selectedRedemption.principal | number:'1.2-2' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Interest:</span>
+              <span class="value amount">₹{{ selectedRedemption.interest | number:'1.2-2' }}</span>
+            </div>
+            <div class="detail-row total">
+              <span class="label">Net Payable:</span>
+              <span class="value amount">₹{{ selectedRedemption.netPayable | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+  
+        <div class="detail-section" *ngIf="selectedRedemption.remarks">
+          <h3>Remarks</h3>
+          <p class="remarks-text">{{ selectedRedemption.remarks }}</p>
+        </div>
+      </div>
+  
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeDetailModal()">Close</button>
+        <button class="btn-primary" (click)="editRedemption(selectedRedemption)">Edit</button>
+        <button class="btn-print-modal" (click)="printRedemption(selectedRedemption)">Print</button>
+      </div>
+    </div>
+  </div>

@@ -1,0 +1,238 @@
+<div class="print-container" *ngIf="!isLoading && receipt">
+    <!-- Header -->
+    <div class="receipt-header">
+      <div class="company-logo">
+        <img src="assets/company-logo.png" alt="Company Logo" class="logo">
+      </div>
+      <div class="company-info">
+        <h1>{{ companyInfo.name }}</h1>
+        <p>{{ companyInfo.address }}</p>
+        <p>Phone: {{ companyInfo.phone }} | Mobile: {{ companyInfo.mobile }}</p>
+        <p class="license">License No: {{ companyInfo.license }}</p>
+      </div>
+    </div>
+  
+    <div class="receipt-title">
+      <h2>LOAN RECEIPT</h2>
+    </div>
+  
+    <!-- Receipt Info Bar -->
+    <div class="receipt-info-bar">
+      <div class="info-item">
+        <span class="label">Receipt No:</span>
+        <span class="value">{{ receipt.receiptNumber }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Date:</span>
+        <span class="value">{{ formatDate(receipt.receiptDate) }}</span>
+      </div>
+      <div class="info-item">
+        <span class="label">Loan No:</span>
+        <span class="value">{{ receipt.loanNumber }}</span>
+      </div>
+    </div>
+  
+    <!-- Customer Details -->
+    <div class="section customer-section">
+      <table class="details-table">
+        <tr>
+          <td class="label-cell">Customer Name:</td>
+          <td class="value-cell">{{ receipt.customerName }}</td>
+          <td class="label-cell">Customer Code:</td>
+          <td class="value-cell">{{ receipt.customerCode }}</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Father's/Husband's Name:</td>
+          <td class="value-cell">{{ receipt.customer?.fatherName || 'N/A' }}</td>
+          <td class="label-cell">Mobile:</td>
+          <td class="value-cell">{{ receipt.customer?.mobile || 'N/A' }}</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Address:</td>
+          <td class="value-cell" colspan="3">{{ receipt.customer?.address || 'N/A' }}</td>
+        </tr>
+      </table>
+    </div>
+  
+    <!-- Loan Details -->
+    <div class="section loan-section">
+      <table class="details-table">
+        <tr>
+          <td class="label-cell">Loan Date:</td>
+          <td class="value-cell">{{ formatDate(receipt.goldLoan?.loanDate) }}</td>
+          <td class="label-cell">Loan Amount:</td>
+          <td class="value-cell">₹{{ formatCurrency(receipt.goldLoan?.loanAmount) }}</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Item Group:</td>
+          <td class="value-cell">{{ receipt.goldLoan?.itemGroup?.itemGroupName }}</td>
+          <td class="label-cell">Scheme:</td>
+          <td class="value-cell">{{ receipt.goldLoan?.scheme?.schemeName }}</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Interest Rate:</td>
+          <td class="value-cell">{{ receipt.goldLoan?.interestRate }}%</td>
+          <td class="label-cell">Payment Type:</td>
+          <td class="value-cell">{{ receipt.paymentType === 'full' ? 'Full Payment' : 'Interest Only' }}</td>
+        </tr>
+      </table>
+    </div>
+  
+    <!-- Pledged Items -->
+    <div class="section items-section">
+      <h3>Pledged Items</h3>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>S.No</th>
+            <th>Item Description</th>
+            <th>Gross Weight</th>
+            <th>Net Weight</th>
+            <th>Purity</th>
+            <th>Photo</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of receipt.goldLoan?.pledgedItems; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.itemName }}</td>
+            <td>{{ item.grossWeight }}g</td>
+            <td>{{ item.netWeight }}g</td>
+            <td>{{ item.purity }}</td>
+            <td class="photo-cell">
+              <img [src]="item.photo || 'assets/no-image.png'" alt="Item Photo" class="item-photo">
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- Interest Statement -->
+    <div class="section statement-section" *ngIf="receipt.interestStatements && receipt.interestStatements.length > 0">
+      <h3>Interest Statement</h3>
+      <table class="statement-table">
+        <thead>
+          <tr>
+            <th>From Date</th>
+            <th>To Date</th>
+            <th>Days</th>
+            <th>Principal</th>
+            <th>Rate</th>
+            <th>Interest</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let statement of receipt.interestStatements">
+            <td>{{ formatDate(statement.fromDate) }}</td>
+            <td>{{ formatDate(statement.tillDate) }}</td>
+            <td>{{ statement.days }}</td>
+            <td>₹{{ formatCurrency(statement.principal) }}</td>
+            <td>{{ statement.interestRate }}%</td>
+            <td>₹{{ formatCurrency(statement.interestAmount) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- Payment Details -->
+    <div class="section payment-section">
+      <table class="payment-table">
+        <tr>
+          <td class="label-cell">Principal Amount:</td>
+          <td class="amount-cell">₹{{ formatCurrency(receipt.principalAmount || 0) }}</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Interest Amount:</td>
+          <td class="amount-cell">₹{{ formatCurrency(receipt.interestAmount || 0) }}</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Other Credits:</td>
+          <td class="amount-cell">₹{{ formatCurrency(receipt.otherCredits || 0) }}</td>
+        </tr>
+        <tr>
+          <td class="label-cell">Less: Other Charges:</td>
+          <td class="amount-cell">₹{{ formatCurrency(receipt.otherCharges || 0) }}</td>
+        </tr>
+        <tr class="total-row">
+          <td class="label-cell"><strong>Net Payable:</strong></td>
+          <td class="amount-cell"><strong>₹{{ formatCurrency(receipt.netPayable) }}</strong></td>
+        </tr>
+        <tr *ngIf="receipt.paymentType !== 'full'">
+          <td class="label-cell">Outstanding Principal:</td>
+          <td class="amount-cell">₹{{ formatCurrency(receipt.outstandingPrincipal) }}</td>
+        </tr>
+      </table>
+    </div>
+  
+    <!-- Amount in Words -->
+    <div class="amount-words">
+      <strong>Amount in Words:</strong> {{ convertToWords(receipt.netPayable) }}
+    </div>
+  
+    <!-- Payment Modes -->
+    <div class="section payment-modes-section" *ngIf="receipt.paymentModes && receipt.paymentModes.length > 0">
+      <h3>Payment Mode</h3>
+      <table class="modes-table">
+        <thead>
+          <tr>
+            <th>Mode</th>
+            <th>Amount</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let mode of receipt.paymentModes">
+            <td>{{ mode.paymentMode }}</td>
+            <td>₹{{ formatCurrency(mode.amount) }}</td>
+            <td>{{ mode.referenceNumber || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <!-- Remarks -->
+    <div class="section remarks-section" *ngIf="receipt.remarks">
+      <strong>Remarks:</strong> {{ receipt.remarks }}
+    </div>
+  
+    <!-- Terms and Conditions -->
+    <div class="terms-section">
+      <h4>Terms & Conditions:</h4>
+      <ol>
+        <li>Interest will be calculated as per the scheme selected</li>
+        <li>Grace period as per scheme will be applicable</li>
+        <li>Items are subject to verification at the time of redemption</li>
+        <li>This receipt must be produced at the time of redemption</li>
+      </ol>
+    </div>
+  
+    <!-- Signatures -->
+    <div class="signatures-section">
+      <div class="signature">
+        <div class="signature-line"></div>
+        <p>Customer Signature</p>
+      </div>
+      <div class="signature">
+        <div class="signature-line"></div>
+        <p>Authorized Signatory</p>
+      </div>
+    </div>
+  
+    <!-- Footer -->
+    <div class="receipt-footer">
+      <p>*** This is a computer generated receipt ***</p>
+      <!-- <p>Printed on: {{ formatDate(new Date().toISOString()) }}</p> -->
+      <p>Printed on: {{ currentDate }}</p>
+    </div>
+  </div>
+  
+  <!-- Loading State -->
+  <div class="loading" *ngIf="isLoading">
+    <p>Loading receipt...</p>
+  </div>
+  
+  <!-- No Print Buttons -->
+  <div class="no-print action-buttons">
+    <button class="btn-print" onclick="window.print()">Print</button>
+    <button class="btn-close" (click)="closePrint()">Close</button>
+  </div>

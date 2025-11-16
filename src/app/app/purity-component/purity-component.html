@@ -1,0 +1,290 @@
+<div class="purities-container">
+  <div class="header">
+    <h1>Purities</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="navigateToGroups()">
+        <i class="fa fa-layer-group"></i> Manage Groups
+      </button>
+      <button class="btn btn-outline" (click)="navigateToItems()">
+        <i class="fa fa-box"></i> View Items
+      </button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-label">TOTAL</div>
+    </div>
+    <div class="stat-card active">
+      <div class="stat-number">{{ stats.active }}</div>
+      <div class="stat-label">ACTIVE</div>
+    </div>
+    <div class="stat-card inactive">
+      <div class="stat-number">{{ stats.inactive }}</div>
+      <div class="stat-label">INACTIVE</div>
+    </div>
+    <div class="stat-card recent">
+      <div class="stat-number">{{ stats.recent }}</div>
+      <div class="stat-label">RECENT</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <i class="fa fa-search"></i>
+      <input 
+        type="text" 
+        placeholder="Search purities..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()">
+    </div>
+    <div class="controls-right">
+      <button 
+        class="btn btn-outline" 
+        (click)="toggleFilter()"
+        [class.active]="showFilters">
+        <i class="fa fa-filter"></i>
+      </button>
+      <div class="view-toggle">
+        <button 
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')">
+          <i class="fa fa-th"></i>
+        </button>
+        <button 
+          [class.active]="viewMode === 'list'"
+          (click)="setViewMode('list')">
+          <i class="fa fa-list"></i>
+        </button>
+      </div>
+      <button 
+        class="btn btn-outline" 
+        (click)="refreshData()"
+        [disabled]="isLoading">
+        <i class="fa fa-sync" [class.fa-spin]="isLoading"></i>
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="addNewPurity()">
+        <i class="fa fa-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section" *ngIf="showFilters">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="">All Status</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive Only</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Item Group:</label>
+        <select [(ngModel)]="itemGroupFilter" (change)="applyFilters()">
+          <option value="">All Groups</option>
+          <option *ngFor="let group of itemGroups" [value]="group.id">
+            {{ group.name }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Percentage Range:</label>
+        <div class="percentage-inputs">
+          <input 
+            type="number" 
+            placeholder="Min %"
+            [(ngModel)]="minPercentage"
+            (change)="applyFilters()"
+            min="0"
+            max="100"
+            step="0.1">
+          <span>to</span>
+          <input 
+            type="number" 
+            placeholder="Max %"
+            [(ngModel)]="maxPercentage"
+            (change)="applyFilters()"
+            min="0"
+            max="100"
+            step="0.1">
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" (click)="clearFilters()">
+        <i class="fa fa-times"></i> Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <div class="list-controls">
+    <div class="list-info">
+      Showing {{ filteredPurities.length }} of {{ totalItems }} purities
+    </div>
+    <div class="sort-controls">
+      <span>Sort by:</span>
+      <select [(ngModel)]="sortBy" (change)="applySorting()">
+        <option value="purityName">Purity Name</option>
+        <option value="purityPercentage">Percentage</option>
+        <option value="itemGroupName">Item Group</option>
+        <option value="createdDate">Date Created</option>
+      </select>
+      <button 
+        class="btn btn-outline sort-direction" 
+        (click)="toggleSortDirection()"
+        [title]="sortDirection === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
+        <i class="fa" [class.fa-arrow-up]="sortDirection === 'asc'" [class.fa-arrow-down]="sortDirection === 'desc'"></i>
+      </button>
+    </div>
+    <div class="select-all">
+      <input 
+        type="checkbox" 
+        id="selectAll"
+        [checked]="isAllSelected()"
+        [indeterminate]="isSomeSelected()"
+        (change)="toggleSelectAll($event)">
+      <label for="selectAll">Select All</label>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fa fa-spinner fa-spin"></i>
+    <p>Loading purities...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredPurities.length === 0">
+    <i class="fa fa-gem"></i>
+    <h3>No purities found</h3>
+    <p *ngIf="searchTerm || statusFilter || itemGroupFilter || minPercentage || maxPercentage">
+      Try adjusting your search criteria or filters
+    </p>
+    <p *ngIf="!searchTerm && !statusFilter && !itemGroupFilter && !minPercentage && !maxPercentage">
+      Create your first purity to get started
+    </p>
+    <button class="btn btn-primary" (click)="addNewPurity()">
+      <i class="fa fa-plus"></i> Add Purity
+    </button>
+  </div>
+
+  <!-- Purities Grid/List -->
+  <div 
+    class="purities-container-view" 
+    [class.grid-view]="viewMode === 'grid'"
+    [class.list-view]="viewMode === 'list'"
+    *ngIf="!isLoading && filteredPurities.length > 0">
+    
+    <div 
+      *ngFor="let purity of filteredPurities; trackBy: trackByPurityId" 
+      class="purity-card"
+      [class.selected]="isSelected(purity.id)"
+      (click)="selectPurity(purity)">
+      
+      <input 
+        type="checkbox" 
+        class="checkbox"
+        [checked]="isSelected(purity.id)"
+        (click)="$event.stopPropagation()"
+        (change)="toggleSelection(purity.id, $event)">
+      
+      <div class="status-badge" [class.active]="purity.isActive" [class.inactive]="!purity.isActive">
+        {{ purity.isActive ? 'ACTIVE' : 'INACTIVE' }}
+      </div>
+      
+      <div class="purity-avatar" [ngClass]="getPurityAvatarClass(purity.itemGroupName)">
+        {{ getPurityDisplay(purity) }}
+      </div>
+      
+      <div class="purity-content">
+        <div class="purity-name">{{ purity.purityName }}</div>
+        <div class="purity-code">{{ purity.purityCode }}</div>
+        <div class="purity-description" *ngIf="purity.description">
+          {{ purity.description }}
+        </div>
+      </div>
+      
+      <div class="purity-percentage-display">
+        <div class="percentage-badge">{{ purity.purityPercentage }}%</div>
+        <div class="karat-badge" *ngIf="purity.karat">{{ purity.karat }}K</div>
+      </div>
+      
+      <div class="purity-details">
+        <div class="purity-detail">
+          <i class="fa fa-layer-group"></i>
+          <span class="group-badge">{{ purity.itemGroupName }}</span>
+        </div>
+        <div class="purity-detail">
+          <i class="fa fa-box"></i>
+          <span>{{ purity.itemCount ?? 0 }} items using this purity</span>
+        </div>
+      </div>
+      
+      <div class="purity-actions" (click)="$event.stopPropagation()">
+        <button 
+          class="action-btn edit" 
+          (click)="editPurity(purity)"
+          title="Edit Purity">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button 
+          class="action-btn delete" 
+          (click)="deletePurity(purity)"
+          title="Delete Purity"
+          [disabled]="(purity.itemCount ?? 0) > 0">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Actions -->
+  <div class="bulk-actions" *ngIf="selectedPurities.size > 0">
+    <div class="bulk-info">
+      {{ selectedPurities.size }} purity(ies) selected
+    </div>
+    <div class="bulk-buttons">
+      <button class="btn btn-outline" (click)="bulkActivate()">
+        <i class="fa fa-check"></i> Activate
+      </button>
+      <button class="btn btn-outline" (click)="bulkDeactivate()">
+        <i class="fa fa-times"></i> Deactivate
+      </button>
+      <button class="btn btn-danger" (click)="bulkDelete()">
+        <i class="fa fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+
+  <!-- Purity Templates Modal -->
+  <div class="templates-modal" *ngIf="showTemplates" (click)="closeTemplates()">
+    <div class="templates-content" (click)="$event.stopPropagation()">
+      <div class="templates-header">
+        <h3>Common Purity Templates</h3>
+        <button class="close-btn" (click)="closeTemplates()">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+      <div class="templates-grid">
+        <div class="template-category" *ngFor="let category of purityTemplates">
+          <h4>{{ category.groupName }}</h4>
+          <div class="template-items">
+            <div 
+              *ngFor="let template of category.templates"
+              class="template-item"
+              (click)="createFromTemplate(template)">
+              <div class="template-name">{{ template.name }}</div>
+              <div class="template-details">
+                <span>{{ template.percentage }}%</span>
+                <span *ngIf="template.karat">({{ template.karat }})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

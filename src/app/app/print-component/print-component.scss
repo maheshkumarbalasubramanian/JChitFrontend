@@ -1,0 +1,312 @@
+.print-container {
+    max-width: 210mm;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    font-family: 'Latha', 'Tamil MN', Arial, sans-serif;
+  }
+
+  .receipt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border: 2px solid #000;
+    padding: 15px;
+    margin-bottom: 10px;
+  }
+
+  .header-left {
+    flex: 1;
+  }
+
+  .company-logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 10px;
+  }
+
+  .loan-number {
+    font-weight: bold;
+    font-size: 14px;
+  }
+
+  .header-center {
+    flex: 2;
+    text-align: center;
+  }
+
+  .company-name-tamil {
+    font-size: 24px;
+    font-weight: bold;
+    color: #d32f2f;
+    margin-bottom: 5px;
+  }
+
+  .company-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .company-address {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .header-right {
+    flex: 1;
+    text-align: right;
+  }
+
+  .amount {
+    font-size: 20px;
+    font-weight: bold;
+    color: #d32f2f;
+  }
+
+  .date, .maturity {
+    font-size: 11px;
+    margin-top: 5px;
+  }
+
+  .scheme-name {
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 8px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+  }
+
+  .content-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .customer-section {
+    flex: 2;
+    border: 1px solid #000;
+    padding: 10px;
+  }
+
+  .info-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+
+  .customer-name {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 5px;
+  }
+
+  .customer-address {
+    font-size: 12px;
+    margin-bottom: 5px;
+  }
+
+  .customer-mobile {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .loan-amount-words {
+    font-size: 11px;
+    font-weight: bold;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+  }
+
+  .photos-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .photo-box {
+    border: 1px solid #000;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .photo-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+  }
+
+  .no-photo {
+    color: #999;
+    font-size: 12px;
+  }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+  }
+
+  .items-table th,
+  .items-table td {
+    border: 1px solid #000;
+    padding: 8px;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .items-table th {
+    background: #f5f5f5;
+    font-weight: bold;
+  }
+
+  .items-table td:first-child {
+    text-align: left;
+  }
+
+  .totals-section {
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid #000;
+    padding: 8px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .separator {
+    margin-left: 20px;
+    padding-left: 20px;
+    border-left: 1px solid #333;
+  }
+
+  .terms-section {
+    border: 1px solid #000;
+    padding: 10px;
+  }
+
+  .business-hours {
+    text-align: center;
+    font-size: 11px;
+    padding: 5px;
+    background: #f9f9f9;
+    margin-bottom: 10px;
+  }
+
+  .terms-text {
+    font-size: 10px;
+    line-height: 1.5;
+    text-align: justify;
+    margin-bottom: 15px;
+  }
+
+  .signature-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 30px;
+  }
+
+  .customer-signature,
+  .company-signature {
+    flex: 1;
+  }
+
+  .signature-line {
+    border-bottom: 1px solid #000;
+    width: 200px;
+    height: 40px;
+  }
+
+  .signature-image {
+    height: 40px;
+  }
+
+  .signature-label {
+    font-size: 11px;
+    margin-top: 5px;
+  }
+
+  .print-actions {
+    text-align: center;
+    margin-top: 20px;
+    padding: 20px;
+  }
+
+  .btn-print,
+  .btn-back {
+    padding: 12px 30px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .btn-print {
+    background: #007bff;
+    color: white;
+  }
+
+  .btn-back {
+    background: #6c757d;
+    color: white;
+  }
+
+  /* Print Styles */
+  @media print {
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    .print-container {
+      max-width: 100%;
+      margin: 0;
+      padding: 10mm;
+      box-shadow: none;
+      page-break-after: always;
+    }
+
+    .no-print {
+      display: none !important;
+    }
+
+    .receipt-header {
+      border: 2px solid #000 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .company-name-tamil {
+      color: #000 !important;
+    }
+
+    .amount {
+      color: #000 !important;
+    }
+
+    .photo-box {
+      border: 1px solid #000 !important;
+    }
+
+    .items-table th,
+    .items-table td {
+      border: 1px solid #000 !important;
+    }
+
+    .terms-section {
+      border: 1px solid #000 !important;
+    }
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }

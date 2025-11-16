@@ -1,0 +1,165 @@
+<div class="purity-add-container">
+  <div class="header">
+    <h2>{{ isEditMode ? 'Edit' : 'Add New' }} Purity</h2>
+    <button type="button" class="close-btn" (click)="onCancel()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+
+  <form [formGroup]="purityForm" (ngSubmit)="onSubmit()" class="purity-form">
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <h3>Basic Information</h3>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="purityCode">Purity Code <span class="required">*</span></label>
+          <input type="text" 
+                 id="purityCode" 
+                 class="form-control" 
+                 formControlName="purityCode" 
+                 readonly 
+                 [class.is-invalid]="isFieldInvalid('purityCode')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('purityCode')">
+            {{ getFieldError('purityCode') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="itemGroupId">Item Group <span class="required">*</span></label>
+          <select id="itemGroupId" 
+                  class="form-control" 
+                  formControlName="itemGroupId" 
+                  [class.is-invalid]="isFieldInvalid('itemGroupId')"
+                  [disabled]="isLoadingGroups">
+            <option value="">{{ isLoadingGroups ? 'Loading...' : 'Select Item Group' }}</option>
+            <option *ngFor="let group of itemGroups" [value]="group.id">
+              {{ group.name }} ({{ group.code }})
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('itemGroupId')">
+            {{ getFieldError('itemGroupId') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="purityName">Purity Name <span class="required">*</span></label>
+          <input type="text" 
+                 id="purityName" 
+                 class="form-control" 
+                 formControlName="purityName" 
+                 placeholder="e.g., 22K Gold, Sterling Silver"
+                 [class.is-invalid]="isFieldInvalid('purityName')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('purityName')">
+            {{ getFieldError('purityName') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="isActive">Status</label>
+          <select id="isActive" class="form-control" formControlName="isActive">
+            <option [value]="true">Active</option>
+            <option [value]="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="purityPercentage">Purity Percentage <span class="required">*</span></label>
+          <div class="input-with-unit">
+            <input type="number" 
+                   id="purityPercentage" 
+                   class="form-control" 
+                   formControlName="purityPercentage" 
+                   placeholder="e.g., 91.6"
+                   step="0.1"
+                   min="0"
+                   max="100"
+                   [class.is-invalid]="isFieldInvalid('purityPercentage')">
+            <span class="unit">%</span>
+          </div>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('purityPercentage')">
+            {{ getFieldError('purityPercentage') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="karat">Karat (for Gold)</label>
+          <div class="input-with-unit">
+            <input type="number" 
+                   id="karat" 
+                   class="form-control" 
+                   formControlName="karat" 
+                   placeholder="e.g., 22"
+                   min="1"
+                   max="24">
+            <span class="unit">K</span>
+          </div>
+          <small class="form-text">Only applicable for gold items</small>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="description">Description</label>
+          <textarea id="description" 
+                    class="form-control" 
+                    formControlName="description" 
+                    rows="3"
+                    placeholder="Enter description for this purity level..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Purity Templates Section -->
+    <div class="templates-section" *ngIf="getSelectedGroupTemplates().length > 0">
+      <h4>Quick Templates for {{ getSelectedGroupName() }}:</h4>
+      <div class="templates-grid">
+        <div *ngFor="let template of getSelectedGroupTemplates()" 
+             class="template-item"
+             (click)="applyPurityTemplate(template)">
+          <div class="template-name">{{ template.name }}</div>
+          <div class="template-details">
+            <span>{{ template.percentage }}%</span>
+            <span *ngIf="template.karat">({{ template.karat }}K)</span>
+          </div>
+        </div>
+      </div>
+      <p class="template-help">Click on any template to auto-fill the form</p>
+    </div>
+
+    <!-- Information Section -->
+    <div class="info-section">
+      <h4>Purity Information:</h4>
+      <div class="info-grid">
+        <div class="info-item">
+          <strong>Gold Purity:</strong>
+          <span>24K = 99.9%, 22K = 91.6%, 18K = 75%, 14K = 58.3%</span>
+        </div>
+        <div class="info-item">
+          <strong>Silver Purity:</strong>
+          <span>Fine Silver = 99.9%, Sterling = 92.5%, Coin = 90%</span>
+        </div>
+        <div class="info-item">
+          <strong>Platinum Purity:</strong>
+          <span>Pure = 99.5%, Pt950 = 95%, Pt900 = 90%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="purityForm.invalid || isLoading || isLoadingGroups">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }} Purity
+      </button>
+    </div>
+  </form>
+</div>

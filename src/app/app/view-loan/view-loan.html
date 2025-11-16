@@ -1,0 +1,302 @@
+<div class="loan-list-container">
+    <!-- Header Section -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1 class="page-title">New Loans/ Pledges</h1>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-primary" (click)="createNewLoan()">
+          <i class="fa fa-plus"></i> Create New
+        </button>
+        <button class="btn btn-secondary" (click)="exportData()">
+          <i class="fa fa-download"></i>
+        </button>
+      </div>
+    </div>
+    <!-- Error Message -->
+  <div class="error-banner" *ngIf="errorMessage && !isLoading">
+    <i class="fa fa-exclamation-circle"></i>
+    <span>{{ errorMessage }}</span>
+    <button (click)="errorMessage = ''" class="close-btn">&times;</button>
+  </div>
+    <!-- Filters Section -->
+    <div class="filters-section">
+      <form [formGroup]="filterForm" class="filter-form">
+        <div class="filter-row">
+          <!-- Search Box -->
+          <div class="search-group">
+            <div class="search-input">
+              <i class="fa fa-search"></i>
+              <input 
+                type="text" 
+                placeholder="Type here to Search" 
+                formControlName="searchTerm"
+                class="form-control">
+            </div>
+          </div>
+  
+          <!-- Date Filters -->
+          <div class="date-group">
+            <div class="date-input">
+              <label>From Date</label>
+              <input 
+                type="date" 
+                formControlName="fromDate"
+                class="form-control">
+            </div>
+            <div class="date-input">
+              <label>To Date</label>
+              <input 
+                type="date" 
+                formControlName="toDate"
+                class="form-control">
+            </div>
+          </div>
+  
+          <!-- Action Buttons -->
+          <div class="filter-actions">
+            <button 
+              type="button" 
+              class="btn btn-outline"
+              (click)="showAdvancedFilters = !showAdvancedFilters">
+              <i class="fa fa-filter"></i> Filter
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline"
+              (click)="clearFilters()">
+              <i class="fa fa-times"></i> Clear
+            </button>
+            <button 
+              type="button" 
+              class="btn btn-outline"
+              (click)="refreshData()">
+              <i class="fa fa-refresh"></i>
+            </button>
+          </div>
+        </div>
+  
+        <!-- Advanced Filters -->
+        <div class="advanced-filters" *ngIf="showAdvancedFilters">
+          <div class="filter-row">
+            <div class="filter-group">
+              <label>Status</label>
+              <select formControlName="status" class="form-control">
+                <option value="">All Status</option>
+                <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label>Group Name</label>
+              <select formControlName="groupName" class="form-control">
+                <option value="">All Groups</option>
+                <option *ngFor="let group of groupNames" [value]="group">{{ group }}</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label>Scheme Name</label>
+              <select formControlName="schemeName" class="form-control">
+                <option value="">All Schemes</option>
+                <option *ngFor="let scheme of schemeNames" [value]="scheme">{{ scheme }}</option>
+              </select>
+            </div>
+            
+            <div class="filter-group">
+              <label>Approval Status</label>
+              <select formControlName="approvalStatus" class="form-control">
+                <option value="">All</option>
+                <option *ngFor="let status of approvalStatusOptions" [value]="status">{{ status }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  
+    <!-- Bulk Actions -->
+    <div class="bulk-actions" *ngIf="selectedLoans.size > 0">
+      <div class="selected-count">
+        {{ selectedLoans.size }} item(s) selected
+      </div>
+      <div class="bulk-buttons">
+        <button class="btn btn-danger btn-sm" (click)="bulkDelete()">
+          <i class="fa fa-trash"></i> Delete Selected
+        </button>
+      </div>
+    </div>
+  
+    <!-- Data Table -->
+    <div class="table-container" [class.loading]="isLoading">
+      <div class="loading-overlay" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+      </div>
+  
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="checkbox-col">
+              <input 
+                type="checkbox" 
+                [checked]="isAllSelected()"
+                [indeterminate]="isIndeterminate()"
+                (change)="toggleSelectAll($event)">
+            </th>
+            <th>#</th>
+            <th>Loan No</th>
+            <th>Loan Date</th>
+            <th>Party Name</th>
+            <th>Principal</th>
+            <th>Grp Name</th>
+            <th>Scheme Name</th>
+            <th>TotNetWt</th>
+            <th>Mature Date</th>
+            <th>Approval Status</th>
+            <th class="actions-col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr 
+            *ngFor="let loan of paginatedLoans; let i = index; trackBy: trackByLoanId"
+            class="table-row"
+            (click)="viewLoan(loan)"
+            [class.selected]="selectedLoans.has(loan.id)">
+            
+            <td class="checkbox-col">
+              <input 
+                type="checkbox" 
+                [checked]="selectedLoans.has(loan.id)"
+                (change)="toggleLoanSelection(loan.id, $event)"
+                (click)="$event.stopPropagation()">
+            </td>
+            
+            <td class="row-number">{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+            
+            <td class="loan-no">
+              <a href="javascript:void(0)" (click)="viewLoan(loan); $event.stopPropagation()">
+                {{ loan.loanNo }}
+              </a>
+            </td>
+            
+            <td class="loan-date">{{ loan.loanDate | date:'dd/MM/yyyy' }}</td>
+            
+            <td class="party-name">{{ loan.partyName }}</td>
+            
+            <td class="principal">{{ loan.principal | number:'1.0-0' }}</td>
+            
+            <td class="group-name">
+              <span class="group-badge" [ngClass]="getGroupClass(loan.groupName)">
+                {{ loan.groupName }}
+              </span>
+            </td>
+            
+            <td class="scheme-name">{{ loan.schemeName }}</td>
+            
+            <td class="net-weight">{{ loan.totalNetWeight | number:'1.3-3' }}</td>
+            
+            <td class="mature-date">{{ loan.maturityDate | date:'dd/MM/yyyy' }}</td>
+            
+            <td class="approval-status">
+              <span class="status-badge" [ngClass]="getStatusClass(loan.approvalStatus || loan.status)">
+                {{ loan.approvalStatus }}
+              </span>
+            </td>
+            
+            <td class="actions-col">
+              <div class="action-buttons">
+                <button 
+                  class="btn-icon btn-edit" 
+                  (click)="editLoan(loan, $event)"
+                  title="Edit">
+                  <i class="fa fa-edit"></i>
+                </button>
+                <button 
+                  class="btn-icon btn-print" 
+                  (click)="printLoan(loan, $event)"
+                  title="Print">
+                  <i class="fa fa-print"></i>
+                </button>
+                <button 
+                  class="btn-icon btn-delete" 
+                  (click)="deleteLoan(loan, $event)"
+                  title="Delete">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+  
+      <!-- No Data Message -->
+      <div class="no-data" *ngIf="!isLoading && filteredLoans.length === 0">
+        <div class="no-data-icon">
+          <i class="fa fa-inbox"></i>
+        </div>
+        <h3>No loans found</h3>
+        <p>Try adjusting your search criteria or create a new loan.</p>
+        <button class="btn btn-primary" (click)="createNewLoan()">
+          <i class="fa fa-plus"></i> Create New Loan
+        </button>
+      </div>
+    </div>
+  
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="!isLoading && filteredLoans.length > 0">
+      <div class="pagination-info">
+        <div class="page-size-selector">
+          <label>Items per page:</label>
+          <select [value]="pageSize"    (change)="onPageSizeChange($event)" class="form-control">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+        
+        <div class="page-info">
+          {{ pageInfo }}
+        </div>
+      </div>
+  
+      <div class="pagination-controls" *ngIf="totalPages > 1">
+        <button 
+          class="btn btn-pagination" 
+          [disabled]="currentPage === 1"
+          (click)="onPageChange(1)">
+          <i class="fa fa-angle-double-left"></i>
+        </button>
+        
+        <button 
+          class="btn btn-pagination" 
+          [disabled]="currentPage === 1"
+          (click)="onPageChange(currentPage - 1)">
+          <i class="fa fa-angle-left"></i>
+        </button>
+  
+        <div class="page-numbers">
+          <button 
+            *ngFor="let page of getPageNumbers()" 
+            class="btn btn-pagination"
+            [class.active]="page === currentPage"
+            [disabled]="page === '...'"
+            (click)="page !== '...' && onPageChange(+page)">
+            {{ page }}
+          </button>
+        </div>
+  
+        <button 
+          class="btn btn-pagination" 
+          [disabled]="currentPage === totalPages"
+          (click)="onPageChange(currentPage + 1)">
+          <i class="fa fa-angle-right"></i>
+        </button>
+        
+        <button 
+          class="btn btn-pagination" 
+          [disabled]="currentPage === totalPages"
+          (click)="onPageChange(totalPages)">
+          <i class="fa fa-angle-double-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>

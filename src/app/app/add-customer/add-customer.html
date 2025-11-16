@@ -1,0 +1,402 @@
+<div class="customer-add-container">
+  <div class="header">
+    <h2>
+      {{ isViewMode ? 'View Customer' : (isEditMode ? 'Edit Customer' : 'Add New Customer') }}
+    </h2>
+    <button type="button" class="close-btn" (click)="onCancel()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+
+  <form [formGroup]="customerForm" (ngSubmit)="onSubmit()" class="customer-form">
+    <!-- Top Section with Profile and Basic Info -->
+    <div class="top-section">
+      <div class="profile-section">
+        <div class="profile-image" [class.has-image]="profileImagePreview">
+          <img *ngIf="profileImagePreview" [src]="profileImagePreview" alt="Profile" class="profile-img">
+          <i *ngIf="!profileImagePreview" class="fa fa-camera"></i>
+        </div>
+        <div class="image-controls">
+          <input type="file" id="profileImage" accept="image/*" (change)="onFileSelect($event)" hidden>
+          <label for="profileImage" class="btn-xs btn-primary">
+            <i class="fa fa-folder"></i> Browse
+          </label>
+          <button type="button" class="btn-xs btn-info" (click)="capturePhoto()">
+            <i class="fa fa-camera"></i> Capture
+          </button>
+          <button type="button" class="btn-xs btn-danger" (click)="removeProfileImage()" 
+                  [disabled]="!profileImagePreview">
+            <i class="fa fa-trash"></i> Remove
+          </button>
+        </div>
+        <div class="verification-box">
+          <div class="verify-item">
+            <div class="verify-left">
+              <i class="fa fa-id-card verify-icon" [class.verified]="customerForm.get('aadharVerified')?.value"></i>
+              <span>{{ customerForm.get('aadharVerified')?.value ? 'Verified' : 'Not Verified' }}</span>
+            </div>
+          </div>
+          <div class="verify-item">
+            <div class="verify-left">
+              <i class="fa fa-fingerprint verify-icon" [class.verified]="customerForm.get('fingerprintVerified')?.value"></i>
+              <span>{{ customerForm.get('fingerprintVerified')?.value ? 'Verified' : 'Not Verified' }}</span>
+            </div>
+            <button type="button" class="btn-xs btn-success" 
+                    (click)="captureFingerprint()" 
+                    [disabled]="isCapturingFingerprint"
+                    *ngIf="!customerForm.get('fingerprintVerified')?.value">
+              <i class="fa fa-spinner fa-spin" *ngIf="isCapturingFingerprint"></i>
+              <i class="fa fa-fingerprint" *ngIf="!isCapturingFingerprint"></i>
+              {{ isCapturingFingerprint ? 'Capturing...' : 'Capture' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="basic-fields">
+        <div class="field-group">
+          <label class="field-label">Customer Code <span class="required">*</span></label>
+          <input type="text" class="field-input" formControlName="customerCode" readonly 
+                 [class.invalid]="isFieldInvalid('customerCode')">
+          <div class="error-text" *ngIf="isFieldInvalid('customerCode')">{{ getFieldError('customerCode') }}</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Mobile <span class="required">*</span></label>
+          <input type="tel" class="field-input" formControlName="mobile" 
+                 placeholder="Enter mobile number" [class.invalid]="isFieldInvalid('mobile')">
+          <div class="error-text" *ngIf="isFieldInvalid('mobile')">{{ getFieldError('mobile') }}</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Customer Name <span class="required">*</span></label>
+          <input type="text" class="field-input" formControlName="customerName" 
+                 placeholder="Enter full name" [class.invalid]="isFieldInvalid('customerName')">
+          <div class="error-text" *ngIf="isFieldInvalid('customerName')">{{ getFieldError('customerName') }}</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Relationship Name <span class="required">*</span></label>
+          <input type="text" class="field-input" formControlName="relationshipName" 
+                 placeholder="Enter father's/husband's name" [class.invalid]="isFieldInvalid('relationshipName')">
+          <div class="error-text" *ngIf="isFieldInvalid('relationshipName')">{{ getFieldError('relationshipName') }}</div>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Relation Type <span class="required">*</span></label>
+          <select class="field-input" formControlName="relationName" 
+                  [class.invalid]="isFieldInvalid('relationName')">
+            <option value="">Select Relation</option>
+            <option value="S/o">S/o (Son of)</option>
+            <option value="D/o">D/o (Daughter of)</option>
+            <option value="W/o">W/o (Wife of)</option>
+            <option value="H/o">H/o (Husband of)</option>
+          </select>
+          <div class="error-text" *ngIf="isFieldInvalid('relationName')">{{ getFieldError('relationName') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="tabs">
+      <button type="button" class="tab" [class.active]="selectedTab === 'address'" 
+              (click)="onTabChange('address')">Address Information</button>
+      <button type="button" class="tab" [class.active]="selectedTab === 'contact'" 
+              (click)="onTabChange('contact')">Contact Information</button>
+      <button type="button" class="tab" [class.active]="selectedTab === 'other'" 
+              (click)="onTabChange('other')">Other Information</button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Address Information -->
+      <div class="tab-section" [class.active]="selectedTab === 'address'">
+        <h4 class="section-title">Address Information</h4>
+        <div class="form-grid">
+          <div class="field-group">
+            <label class="field-label">Address Line 1 <span class="required">*</span></label>
+            <input type="text" class="field-input" formControlName="address1" 
+                   placeholder="House/Building No, Street" [class.invalid]="isFieldInvalid('address1')">
+            <div class="error-text" *ngIf="isFieldInvalid('address1')">{{ getFieldError('address1') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Area <span class="required">*</span></label>
+            <select class="field-input" formControlName="area" [class.invalid]="isFieldInvalid('area')">
+              <option value="">Select Area</option>
+              <option value="PRIMARY">PRIMARY</option>
+              <option value="SECONDARY">SECONDARY</option>
+              <option value="RURAL">RURAL</option>
+              <option value="URBAN">URBAN</option>
+            </select>
+            <div class="error-text" *ngIf="isFieldInvalid('area')">{{ getFieldError('area') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Address Line 2</label>
+            <input type="text" class="field-input" formControlName="address2" placeholder="Area, Landmark">
+          </div>
+          <div class="field-group">
+            <label class="field-label">State <span class="required">*</span></label>
+            <select class="field-input" formControlName="state" [class.invalid]="isFieldInvalid('state')">
+              <option value="">Select State</option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Telangana">Telangana</option>
+              <option value="Karnataka">Karnataka</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Kerala">Kerala</option>
+            </select>
+            <div class="error-text" *ngIf="isFieldInvalid('state')">{{ getFieldError('state') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Address Line 3</label>
+            <input type="text" class="field-input" formControlName="address3" placeholder="District">
+          </div>
+          <div class="field-group">
+            <label class="field-label">Pincode <span class="required">*</span></label>
+            <input type="text" class="field-input" formControlName="pincode" 
+                   placeholder="Enter 6-digit pincode" [class.invalid]="isFieldInvalid('pincode')">
+            <div class="error-text" *ngIf="isFieldInvalid('pincode')">{{ getFieldError('pincode') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Address Line 4</label>
+            <input type="text" class="field-input" formControlName="address4" placeholder="State">
+          </div>
+          <div class="field-group">
+            <label class="field-label">City <span class="required">*</span></label>
+            <input type="text" class="field-input" formControlName="city" 
+                   placeholder="Enter city name" [class.invalid]="isFieldInvalid('city')">
+            <div class="error-text" *ngIf="isFieldInvalid('city')">{{ getFieldError('city') }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="tab-section" [class.active]="selectedTab === 'contact'">
+        <h4 class="section-title">Contact Information</h4>
+        <div class="form-grid">
+          <div class="field-group">
+            <label class="field-label">Primary Phone <span class="required">*</span></label>
+            <div class="input-with-copy">
+              <input type="tel" class="field-input" formControlName="primaryPhone" 
+                     placeholder="Enter primary phone" [class.invalid]="isFieldInvalid('primaryPhone')">
+              <button type="button" class="copy-btn" (click)="copyPrimaryToSecondary()" title="Copy to Secondary">
+                <i class="fa fa-copy"></i>
+              </button>
+            </div>
+            <div class="error-text" *ngIf="isFieldInvalid('primaryPhone')">{{ getFieldError('primaryPhone') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Secondary Phone</label>
+            <input type="tel" class="field-input" formControlName="secondaryPhone" 
+                   placeholder="Enter secondary phone" [class.invalid]="isFieldInvalid('secondaryPhone')">
+            <div class="error-text" *ngIf="isFieldInvalid('secondaryPhone')">{{ getFieldError('secondaryPhone') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Email Address</label>
+            <input type="email" class="field-input" formControlName="email" 
+                   placeholder="Enter email address" [class.invalid]="isFieldInvalid('email')">
+            <div class="error-text" *ngIf="isFieldInvalid('email')">{{ getFieldError('email') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">WhatsApp Number</label>
+            <div class="input-with-copy">
+              <input type="tel" class="field-input" formControlName="whatsapp" 
+                     placeholder="Enter WhatsApp number" [class.invalid]="isFieldInvalid('whatsapp')">
+              <button type="button" class="copy-btn" (click)="copyMobileToWhatsApp()" title="Copy Mobile Number">
+                <i class="fa fa-copy"></i>
+              </button>
+            </div>
+            <div class="error-text" *ngIf="isFieldInvalid('whatsapp')">{{ getFieldError('whatsapp') }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Other Information -->
+      <div class="tab-section" [class.active]="selectedTab === 'other'">
+        <h4 class="section-title">Other Information</h4>
+        <div class="form-grid">
+          <div class="field-group">
+            <label class="field-label">Aadhar Number <span class="required">*</span></label>
+            <input type="text" class="field-input" formControlName="aadharNumber" 
+                   placeholder="Enter 12-digit Aadhar number" [class.invalid]="isFieldInvalid('aadharNumber')">
+            <div class="error-text" *ngIf="isFieldInvalid('aadharNumber')">{{ getFieldError('aadharNumber') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">PAN Number</label>
+            <input type="text" class="field-input" formControlName="panNumber" 
+                   placeholder="Enter PAN number" style="text-transform: uppercase;" 
+                   [class.invalid]="isFieldInvalid('panNumber')">
+            <div class="error-text" *ngIf="isFieldInvalid('panNumber')">{{ getFieldError('panNumber') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Date of Birth</label>
+            <input type="date" class="field-input" formControlName="dateOfBirth" 
+                   [class.invalid]="isFieldInvalid('dateOfBirth')">
+            <div class="error-text" *ngIf="isFieldInvalid('dateOfBirth')">{{ getFieldError('dateOfBirth') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Occupation</label>
+            <select class="field-input" formControlName="occupation">
+              <option value="">Select Occupation</option>
+              <option value="Business">Business</option>
+              <option value="Service">Service</option>
+              <option value="Agriculture">Agriculture</option>
+              <option value="Professional">Professional</option>
+              <option value="Retired">Retired</option>
+              <option value="Housewife">Housewife</option>
+              <option value="Student">Student</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Monthly Income (₹)</label>
+            <input type="number" class="field-input" formControlName="monthlyIncome" 
+                   placeholder="Enter monthly income" [class.invalid]="isFieldInvalid('monthlyIncome')">
+            <div class="error-text" *ngIf="isFieldInvalid('monthlyIncome')">{{ getFieldError('monthlyIncome') }}</div>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Reference By</label>
+            <input type="text" class="field-input" formControlName="referenceBy" 
+                   placeholder="Enter reference name">
+          </div>
+        </div>
+
+        <!-- Document Upload Section -->
+        <div class="documents-section">
+          <h5 class="subsection-title">Customer Documents (Optional)</h5>
+          <div class="documents-grid">
+            <div class="document-upload-group">
+              <label class="field-label">Aadhar Card</label>
+              <div class="file-upload-wrapper">
+                <input type="file" id="aadharDocument" accept="image/*,.pdf" 
+                       (change)="onDocumentSelect($event, 'aadharDocument')" hidden>
+                <label for="aadharDocument" class="file-upload-btn">
+                  <i class="fa fa-upload"></i> Choose File
+                </label>
+                <span class="file-name" *ngIf="getDocumentName('aadharDocument')">
+                  {{ getDocumentName('aadharDocument') }}
+                </span>
+                <button type="button" class="remove-file-btn" 
+                        *ngIf="customerForm.get('documents.aadharDocument')?.value"
+                        (click)="removeDocument('aadharDocument')">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="document-upload-group">
+              <label class="field-label">PAN Card</label>
+              <div class="file-upload-wrapper">
+                <input type="file" id="panDocument" accept="image/*,.pdf" 
+                       (change)="onDocumentSelect($event, 'panDocument')" hidden>
+                <label for="panDocument" class="file-upload-btn">
+                  <i class="fa fa-upload"></i> Choose File
+                </label>
+                <span class="file-name" *ngIf="getDocumentName('panDocument')">
+                  {{ getDocumentName('panDocument') }}
+                </span>
+                <button type="button" class="remove-file-btn" 
+                        *ngIf="customerForm.get('documents.panDocument')?.value"
+                        (click)="removeDocument('panDocument')">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="document-upload-group">
+              <label class="field-label">Income Proof</label>
+              <div class="file-upload-wrapper">
+                <input type="file" id="incomeProof" accept="image/*,.pdf" 
+                       (change)="onDocumentSelect($event, 'incomeProof')" hidden>
+                <label for="incomeProof" class="file-upload-btn">
+                  <i class="fa fa-upload"></i> Choose File
+                </label>
+                <span class="file-name" *ngIf="getDocumentName('incomeProof')">
+                  {{ getDocumentName('incomeProof') }}
+                </span>
+                <button type="button" class="remove-file-btn" 
+                        *ngIf="customerForm.get('documents.incomeProof')?.value"
+                        (click)="removeDocument('incomeProof')">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="document-upload-group">
+              <label class="field-label">Address Proof</label>
+              <div class="file-upload-wrapper">
+                <input type="file" id="addressProof" accept="image/*,.pdf" 
+                       (change)="onDocumentSelect($event, 'addressProof')" hidden>
+                <label for="addressProof" class="file-upload-btn">
+                  <i class="fa fa-upload"></i> Choose File
+                </label>
+                <span class="file-name" *ngIf="getDocumentName('addressProof')">
+                  {{ getDocumentName('addressProof') }}
+                </span>
+                <button type="button" class="remove-file-btn" 
+                        *ngIf="customerForm.get('documents.addressProof')?.value"
+                        (click)="removeDocument('addressProof')">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="document-upload-group">
+              <label class="field-label">Other Document</label>
+              <div class="file-upload-wrapper">
+                <input type="file" id="otherDocument" accept="image/*,.pdf" 
+                       (change)="onDocumentSelect($event, 'otherDocument')" hidden>
+                <label for="otherDocument" class="file-upload-btn">
+                  <i class="fa fa-upload"></i> Choose File
+                </label>
+                <span class="file-name" *ngIf="getDocumentName('otherDocument')">
+                  {{ getDocumentName('otherDocument') }}
+                </span>
+                <button type="button" class="remove-file-btn" 
+                        *ngIf="customerForm.get('documents.otherDocument')?.value"
+                        (click)="removeDocument('otherDocument')">
+                  <i class="fa fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox-section">
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="aadharVerified" formControlName="aadharVerified">
+              <label for="aadharVerified">Aadhar Verified</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="fingerprintVerified" formControlName="fingerprintVerified">
+              <label for="fingerprintVerified">Fingerprint Verified</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()">
+        <i class="fa fa-times"></i> {{ isViewMode ? 'Close' : 'Cancel' }}
+      </button>
+      
+      <!-- Show Edit button in view mode -->
+      <!-- <button 
+        *ngIf="isViewMode" 
+        type="button" 
+        class="btn btn-primary-solid" 
+        (click)="switchToEditMode()">
+        <i class="fa fa-edit"></i> Edit Customer
+      </button> -->
+      
+      <!-- Show Save/Update button in add/edit mode -->
+      <button 
+        *ngIf="!isViewMode"
+        type="submit" 
+        class="btn btn-primary-solid" 
+        [disabled]="customerForm.invalid || isLoading">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? 'Saving...' : (isEditMode ? 'Update Customer' : 'Save Customer') }}
+      </button>
+    </div>
+  </form>
+</div>

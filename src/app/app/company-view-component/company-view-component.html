@@ -1,0 +1,277 @@
+<div class="areas-container">
+  <div class="header">
+    <h1>Company</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="navigateToCustomers()">
+        <i class="fa fa-users"></i> View Customers
+      </button>
+      <button class="btn btn-outline" (click)="exportAreas()">
+        <i class="fa fa-download"></i> Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-banner" *ngIf="errorMessage">
+    <i class="fa fa-exclamation-circle"></i>
+    <span>{{ errorMessage }}</span>
+    <button class="close-error" (click)="errorMessage = ''">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-label">TOTAL</div>
+    </div>
+    <div class="stat-card active">
+      <div class="stat-number">{{ stats.active }}</div>
+      <div class="stat-label">ACTIVE</div>
+    </div>
+    <div class="stat-card inactive">
+      <div class="stat-number">{{ stats.inactive }}</div>
+      <div class="stat-label">INACTIVE</div>
+    </div>
+    <div class="stat-card recent">
+      <div class="stat-number">{{ stats.recent }}</div>
+      <div class="stat-label">RECENT</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <i class="fa fa-search"></i>
+      <input 
+        type="text" 
+        placeholder="Search Company..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()">
+    </div>
+    <div class="controls-right">
+      <button 
+        class="btn btn-outline" 
+        (click)="toggleFilter()"
+        [class.active]="showFilters">
+        <i class="fa fa-filter"></i>
+      </button>
+      <div class="view-toggle">
+        <button 
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')">
+          <i class="fa fa-th"></i>
+        </button>
+        <button 
+          [class.active]="viewMode === 'list'"
+          (click)="setViewMode('list')">
+          <i class="fa fa-list"></i>
+        </button>
+      </div>
+      <button 
+        class="btn btn-outline" 
+        (click)="refreshData()"
+        [disabled]="isLoading">
+        <i class="fa fa-sync" [class.fa-spin]="isLoading"></i>
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="addNewArea()">
+        <i class="fa fa-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section" *ngIf="showFilters">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="">All Status</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive Only</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Type:</label>
+        <select [(ngModel)]="typeFilter" (change)="applyFilters()">
+          <option value="">All Types</option>
+          <option value="PRIMARY">Primary</option>
+          <option value="SECONDARY">Secondary</option>
+          <option value="RURAL">Rural</option>
+          <option value="URBAN">Urban</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Customer Count:</label>
+        <div class="count-inputs">
+          <input 
+            type="number" 
+            placeholder="Min"
+            [(ngModel)]="minCustomers"
+            (change)="applyFilters()"
+            min="0">
+          <span>to</span>
+          <input 
+            type="number" 
+            placeholder="Max"
+            [(ngModel)]="maxCustomers"
+            (change)="applyFilters()"
+            min="0">
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" (click)="clearFilters()">
+        <i class="fa fa-times"></i> Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <div class="list-controls">
+    <div class="list-info">
+      Showing {{ filteredAreas.length }} of {{ areas.length }} companies
+    </div>
+    <div class="sort-controls">
+      <span>Sort by:</span>
+      <select [(ngModel)]="sortBy" (change)="applySorting()">
+        <option value="companyName">Company Name</option>
+        <option value="companyCode">Company Code</option>
+        <option value="companyType">Company Type</option>
+        <option value="customerCount">Customer Count</option>
+        <option value="createdDate">Date Created</option>
+      </select>
+      <button 
+        class="btn btn-outline sort-direction" 
+        (click)="toggleSortDirection()"
+        [title]="sortDirection === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
+        <i class="fa" [class.fa-arrow-up]="sortDirection === 'asc'" [class.fa-arrow-down]="sortDirection === 'desc'"></i>
+      </button>
+    </div>
+    <div class="select-all">
+      <input 
+        type="checkbox" 
+        id="selectAll"
+        [checked]="isAllSelected()"
+        [indeterminate]="isSomeSelected()"
+        (change)="toggleSelectAll($event)">
+      <label for="selectAll">Select All</label>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fa fa-spinner fa-spin"></i>
+    <p>Loading companies...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredAreas.length === 0">
+    <i class="fa fa-building"></i>
+    <h3>No Company found</h3>
+    <p *ngIf="searchTerm || statusFilter || typeFilter || minCustomers || maxCustomers">
+      Try adjusting your search criteria or filters
+    </p>
+    <p *ngIf="!searchTerm && !statusFilter && !typeFilter && !minCustomers && !maxCustomers">
+      Create your first company to get started
+    </p>
+    <button class="btn btn-primary" (click)="addNewArea()">
+      <i class="fa fa-plus"></i> Add Company
+    </button>
+  </div>
+
+  <!-- Areas Grid/List -->
+  <div 
+    class="areas-container-view" 
+    [class.grid-view]="viewMode === 'grid'"
+    [class.list-view]="viewMode === 'list'"
+    *ngIf="!isLoading && filteredAreas.length > 0">
+    
+    <div 
+      *ngFor="let company of filteredAreas; trackBy: trackByAreaId" 
+      class="area-card"
+      [class.selected]="isSelected(company.id)"
+      (click)="selectArea(company)">
+      
+      <input 
+        type="checkbox" 
+        class="checkbox"
+        [checked]="isSelected(company.id)"
+        (click)="$event.stopPropagation()"
+        (change)="toggleSelection(company.id, $event)">
+      
+      <div class="status-badge" [class.active]="company.isActive" [class.inactive]="!company.isActive">
+        {{ company.isActive ? 'ACTIVE' : 'INACTIVE' }}
+      </div>
+      
+      <!-- Company Logo or Avatar -->
+      <div class="area-avatar" [ngClass]="getAreaAvatarClass(company.companyType)">
+        <img *ngIf="company.logoUrl" [src]="getLogoUrl(company)" alt="{{ company.companyName }} Logo" class="company-logo-img">
+        <span *ngIf="!company.logoUrl">{{ getAreaDisplay(company) }}</span>
+      </div>
+      
+      <div class="area-content">
+        <div class="area-name">{{ company.companyName }}</div>
+        <div class="area-code">{{ company.companyCode }}</div>
+        <div class="area-description" *ngIf="company.description">
+          {{ company.description }}
+        </div>
+      </div>
+      
+      <div class="area-type-display" *ngIf="company.companyType">
+        <div class="type-badge" [ngClass]="company.companyType.toLowerCase()">
+          {{ company.companyType }}
+        </div>
+      </div>
+<!--       
+      <div class="area-details">
+         <div class="area-detail">
+          <i class="fa fa-users"></i>
+          <span>{{ company.customerCount }} customers</span>
+        </div> 
+        <div class="area-detail" *ngIf="company.pincode">
+          <i class="fa fa-map-pin"></i>
+          <span>{{ company.pincode }}</span>
+        </div>
+      </div> -->
+      
+      <div class="area-actions" (click)="$event.stopPropagation()">
+        <button 
+          class="action-btn view" 
+          (click)="viewAreaCustomers(company)"
+          title="View Customers">
+          <i class="fa fa-users"></i>
+        </button>
+        <button 
+          class="action-btn edit" 
+          (click)="editArea(company)"
+          title="Edit Company">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button 
+          class="action-btn delete" 
+          (click)="deleteArea(company)"
+          title="Delete Company"
+          [disabled]="company.customerCount > 0">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Actions -->
+  <div class="bulk-actions" *ngIf="selectedAreas.size > 0">
+    <div class="bulk-info">
+      {{ selectedAreas.size }} company(s) selected
+    </div>
+    <div class="bulk-buttons">
+      <button class="btn btn-outline" (click)="bulkActivate()">
+        <i class="fa fa-check"></i> Activate
+      </button>
+      <button class="btn btn-outline" (click)="bulkDeactivate()">
+        <i class="fa fa-times"></i> Deactivate
+      </button>
+      <button class="btn btn-danger" (click)="bulkDelete()">
+        <i class="fa fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>

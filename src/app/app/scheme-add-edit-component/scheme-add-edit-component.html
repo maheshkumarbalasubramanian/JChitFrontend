@@ -1,0 +1,487 @@
+<div class="scheme-form-container">
+  <div class="form-header">
+    <h2>{{ isEditMode ? 'Edit' : 'Add New' }} Gold Loan Scheme</h2>
+    <div class="header-actions">
+      <button type="button" class="btn btn-outline" (click)="onCancel()">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+    </div>
+  </div>
+
+  <form [formGroup]="schemeForm" (ngSubmit)="onSubmit()" class="scheme-form">
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3><i class="fa fa-info-circle"></i> Basic Information</h3>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="schemeCode">Scheme Code <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="schemeCode" 
+            class="form-control" 
+            formControlName="schemeCode" 
+            readonly 
+            [class.is-invalid]="isFieldInvalid('schemeCode')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('schemeCode')">
+            {{ getFieldError('schemeCode') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="schemeName">Scheme Name <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="schemeName" 
+            class="form-control" 
+            formControlName="schemeName" 
+            placeholder="e.g., STANDARD, PREMIUM"
+            [class.is-invalid]="isFieldInvalid('schemeName')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('schemeName')">
+            {{ getFieldError('schemeName') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="areaId">Area <span class="required">*</span></label>
+          <select 
+            id="areaId" 
+            class="form-control" 
+            formControlName="areaId"
+            [class.is-invalid]="isFieldInvalid('areaId')">
+            <option value="">Select Area</option>
+            <option *ngFor="let area of areas" [value]="area.id">
+              {{ area.areaCode }} - {{ area.areaName }}
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('areaId')">
+            {{ getFieldError('areaId') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="itemGroupId">Item Group <span class="required">*</span></label>
+          <select 
+            id="itemGroupId" 
+            class="form-control" 
+            formControlName="itemGroupId"
+            [class.is-invalid]="isFieldInvalid('itemGroupId')">
+            <option value="">Select Item Group</option>
+            <option *ngFor="let group of itemGroups" [value]="group.id">
+              {{ group.groupCode }} - {{ group.groupName }}
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('itemGroupId')">
+            {{ getFieldError('itemGroupId') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="isStdRoi">Is Std ROI</label>
+          <select id="isStdRoi" class="form-control" formControlName="isStdRoi">
+            <option [value]="false">No</option>
+            <option [value]="true">Yes</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="calculationBased">Calculation Based <span class="required">*</span></label>
+          <select id="calculationBased" class="form-control" formControlName="calculationBased">
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Half-yearly">Half-yearly</option>
+            <option value="Yearly">Yearly</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="reductionPercent">Reduction %</label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="reductionPercent" 
+              class="form-control" 
+              formControlName="reductionPercent" 
+              placeholder="0"
+              step="0.1"
+              min="0"
+              max="100"
+              [class.is-invalid]="isFieldInvalid('reductionPercent')">
+            <span class="unit">%</span>
+          </div>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('reductionPercent')">
+            {{ getFieldError('reductionPercent') }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calculation Method Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3><i class="fa fa-calculator"></i> Calculation Method</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="calculationMethod">Calculation Method <span class="required">*</span></label>
+          <select 
+            id="calculationMethod" 
+            class="form-control" 
+            formControlName="calculationMethod"
+            (change)="onCalculationMethodChange()">
+            <option value="">Select Method</option>
+            <option value="Simple">Simple Interest</option>
+            <option value="Multiple">Multiple</option>
+            <option value="Compound">Compound Interest</option>
+            <option value="Emi">EMI</option>
+            <option value="Customized">Customized</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="roi">ROI (%) <span class="required">*</span></label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="roi" 
+              class="form-control" 
+              formControlName="roi" 
+              placeholder="0"
+              step="0.1"
+              min="0"
+              max="100"
+              [class.is-invalid]="isFieldInvalid('roi')">
+            <span class="unit">%</span>
+          </div>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('roi')">
+            {{ getFieldError('roi') }}
+          </div>
+        </div>
+        <div class="form-row">
+      
+
+          <div class="form-group">
+            <label for="validityInMonths">Validity in Months</label>
+            <input 
+              type="number" 
+              id="validityInMonths" 
+              class="form-control" 
+              formControlName="validityInMonths" 
+              placeholder="12"
+              min="1"
+              max="60"
+              [class.is-invalid]="isFieldInvalid('validityInMonths')">
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('validityInMonths')">
+              {{ getFieldError('validityInMonths') }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="interestPercentAfterValidity">Interest % After Validity</label>
+            <div class="input-with-unit">
+              <input 
+                type="number" 
+                id="interestPercentAfterValidity" 
+                class="form-control" 
+                formControlName="interestPercentAfterValidity" 
+                placeholder="0"
+                step="0.1"
+                min="0"
+                max="100"
+                [class.is-invalid]="isFieldInvalid('interestPercentAfterValidity')">
+              <span class="unit">%</span>
+            </div>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('interestPercentAfterValidity')">
+              {{ getFieldError('interestPercentAfterValidity') }}
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="showCustomizedStyle()">
+          <label for="customizedStyle">Customized Style</label>
+          <select id="customizedStyle" class="form-control" formControlName="customizedStyle">
+            <option value="VelBankers">VelBankers</option>
+            <option value="Premium">Premium</option>
+            <option value="Standard">Standard</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Compound Interest Specific Fields -->
+      <!-- <div class="form-row" *ngIf="isCompoundInterest()">
+        <div class="form-group">
+          <label for="compoundingFrequency">Compounding Frequency</label>
+          <select id="compoundingFrequency" class="form-control" formControlName="compoundingFrequency">
+            <option value="Monthly">Monthly</option>
+            <option value="Quarterly">Quarterly</option>
+            <option value="Half-yearly">Half-yearly</option>
+            <option value="Yearly">Yearly</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="penaltyRate">Penalty Rate (%)</label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="penaltyRate" 
+              class="form-control" 
+              formControlName="penaltyRate" 
+              placeholder="0"
+              step="0.1"
+              min="0">
+            <span class="unit">%</span>
+          </div>
+        </div>
+      </div> -->
+
+      <!-- EMI Specific Fields -->
+      <div class="form-row" *ngIf="isEmiMethod()">
+        <div class="form-group">
+          <label for="emiTenure">EMI Tenure (Months)</label>
+          <input 
+            type="number" 
+            id="emiTenure" 
+            class="form-control" 
+            formControlName="emiTenure" 
+            placeholder="12"
+            min="1"
+            max="120">
+        </div>
+      </div>
+    </div>
+
+    <!-- Processing Fee Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3><i class="fa fa-money-bill"></i> Processing Fee Configuration</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="processingFeeSlab">Processing Fee Slab</label>
+          <select id="processingFeeSlab" class="form-control" formControlName="processingFeeSlab">
+            <option [value]="false">No</option>
+            <option [value]="true">Open Slab</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="processingFeePercent">Processing Fee %</label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="processingFeePercent" 
+              class="form-control" 
+              formControlName="processingFeePercent" 
+              placeholder="0.1"
+              step="0.01"
+              min="0"
+              max="10">
+            <span class="unit">%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grace Period & Calculation Days -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3><i class="fa fa-clock"></i> Grace Period & Calculation Days</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="minCalcDays">Minimum Calculation Days</label>
+          <input 
+            type="number" 
+            id="minCalcDays" 
+            class="form-control" 
+            formControlName="minCalcDays" 
+            placeholder="15"
+            min="1"
+            max="365">
+        </div>
+
+        <div class="form-group">
+          <label for="graceDays">Grace Days</label>
+          <input 
+            type="number" 
+            id="graceDays" 
+            class="form-control" 
+            formControlName="graceDays" 
+            placeholder="0"
+            min="0"
+            max="30">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="advanceMonth">Advance Month</label>
+          <input 
+            type="number" 
+            id="advanceMonth" 
+            class="form-control" 
+            formControlName="advanceMonth" 
+            placeholder="1"
+            min="0"
+            max="12">
+        </div>
+
+        <div class="form-group" *ngIf="isCompoundInterest()">
+          <label for="penaltyGraceDays">Penalty Grace Days</label>
+          <input 
+            type="number" 
+            id="penaltyGraceDays" 
+            class="form-control" 
+            formControlName="penaltyGraceDays" 
+            placeholder="5"
+            min="0"
+            max="30">
+        </div>
+      </div>
+    </div>
+
+    <!-- Loan Value Limits -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3><i class="fa fa-coins"></i> Loan Value Limits</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="minMarketValue">Min Market Value</label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="minMarketValue" 
+              class="form-control" 
+              formControlName="minMarketValue" 
+              placeholder="0"
+              min="0">
+            <span class="unit">₹</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="maxMarketValue">Max Market Value</label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="maxMarketValue" 
+              class="form-control" 
+              formControlName="maxMarketValue" 
+              placeholder="100000"
+              min="0">
+            <span class="unit">₹</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="minLoanValue">Min Loan Value</label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="minLoanValue" 
+              class="form-control" 
+              formControlName="minLoanValue" 
+              placeholder="1000"
+              min="0">
+            <span class="unit">₹</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="maxLoanValue">Max Loan Value</label>
+          <div class="input-with-unit">
+            <input 
+              type="number" 
+              id="maxLoanValue" 
+              class="form-control" 
+              formControlName="maxLoanValue" 
+              placeholder="50000"
+              min="0">
+            <span class="unit">₹</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Status Section -->
+    <div class="form-section">
+      <div class="section-header">
+        <h3><i class="fa fa-toggle-on"></i> Status</h3>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="isActive">Active Status</label>
+          <select id="isActive" class="form-control" formControlName="isActive">
+            <option [value]="true">Active</option>
+            <option [value]="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="schemeForm.invalid || isLoading">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }} Scheme
+      </button>
+    </div>
+  </form>
+
+  <!-- Calculation Method Info -->
+  <div class="info-panel" *ngIf="schemeForm.get('calculationMethod')?.value">
+    <div class="info-header">
+      <h4><i class="fa fa-info-circle"></i> {{ schemeForm.get('calculationMethod')?.value }} Interest Information</h4>
+    </div>
+    <div class="info-content">
+      <div *ngIf="schemeForm.get('calculationMethod')?.value === 'Simple'">
+        <p><strong>Simple Interest:</strong> Interest is calculated only on the principal amount.</p>
+        <ul>
+          <li>Formula: SI = (P × R × T) / 100</li>
+          <li>P = Principal amount, R = Rate of interest, T = Time period</li>
+          <li>Interest remains constant throughout the loan period</li>
+          <li>Best for short-term loans with regular payments</li>
+        </ul>
+      </div>
+      <div *ngIf="schemeForm.get('calculationMethod')?.value === 'Compound'">
+        <p><strong>Compound Interest:</strong> Interest is calculated on principal plus previously earned interest.</p>
+        <ul>
+          <li>Formula: A = P(1 + r/n)^(nt)</li>
+          <li>A = Amount, P = Principal, r = annual rate, n = compounding frequency, t = time</li>
+          <li>Interest compounds based on the selected frequency</li>
+          <li>Penalty can be applied for delayed payments</li>
+        </ul>
+      </div>
+      <div *ngIf="schemeForm.get('calculationMethod')?.value === 'Emi'">
+        <p><strong>EMI (Equated Monthly Installment):</strong> Fixed monthly payment including principal and interest.</p>
+        <ul>
+          <li>Formula: EMI = P × r × (1+r)^n / ((1+r)^n-1)</li>
+          <li>P = Principal, r = Monthly interest rate, n = Number of installments</li>
+          <li>Equal monthly payments throughout the tenure</li>
+          <li>Interest component decreases over time</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

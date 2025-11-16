@@ -1,0 +1,162 @@
+<!-- Dashboard Content - Only show when on dashboard route -->
+<div *ngIf="isDashboardRoute()" class="dashboard">
+  <!-- Area Selection and Current Rates Header -->
+  <div class="dashboard-header">
+    <div class="area-selection">
+      <div class="area-dropdown-container">
+        <label class="area-label">Select Area:</label>
+        <select 
+          class="area-dropdown" 
+          [(ngModel)]="selectedAreaId" 
+          (change)="onAreaChange()">
+          <option value="all">All Areas</option>
+          <option *ngFor="let area of areas" [value]="area.id">
+            {{ area.areaCode }} - {{ area.areaName }}
+          </option>
+        </select>
+      </div>
+      <div class="selected-area-info">
+        <span class="area-name">{{ getSelectedAreaName() }}</span>
+      </div>
+    </div>
+
+    <!-- Current Rates Display -->
+    <div class="current-rates" *ngIf="currentRates">
+      <h3 class="rates-title">
+        <span class="material-icons">trending_up</span>
+        Current Rates ({{ currentRates.effectiveDate }})
+      </h3>
+      <div class="rates-grid">
+        <div class="rate-card gold">
+          <div class="rate-header">
+            <span class="material-icons">star</span>
+            <span>Gold Rate</span>
+          </div>
+          <div class="rate-values">
+            <div class="rate-item">
+              <span class="rate-label">Standard</span>
+              <span class="rate-value">₹{{ currentRates.goldRate }}/g</span>
+            </div>
+            <div class="rate-item">
+              <span class="rate-label">Purity</span>
+              <span class="rate-value">₹{{ currentRates.goldPurityRate }}/g</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rate-card silver">
+          <div class="rate-header">
+            <span class="material-icons">grade</span>
+            <span>Silver Rate</span>
+          </div>
+          <div class="rate-values">
+            <div class="rate-item">
+              <span class="rate-label">Standard</span>
+              <span class="rate-value">₹{{ currentRates.silverRate }}/g</span>
+            </div>
+            <div class="rate-item">
+              <span class="rate-label">Purity</span>
+              <span class="rate-value">₹{{ currentRates.silverPurityRate }}/g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="rates-actions">
+          <!-- <button class="btn btn-outline btn-sm" (click)="navigateToRateSets()">
+            <span class="material-icons">visibility</span>
+            View All Rates
+          </button> -->
+        <button class="btn btn-primary btn-sm" (click)="navigateToAddRateSet()">
+          <span class="material-icons">add</span>
+          Update Rates
+        </button>
+      </div>
+    </div>
+
+    <!-- No Rates Message -->
+    <div class="no-rates" *ngIf="!currentRates && selectedAreaId !== 'all'">
+      <div class="no-rates-content">
+        <span class="material-icons">error_outline</span>
+        <p>No rates set for this area</p>
+        <button class="btn btn-primary btn-sm" (click)="navigateToAddRateSet()">
+          <span class="material-icons">add</span>
+          Set Rates
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div *ngFor="let stat of dashboardStats" class="stat-card">
+      <div class="stat-content">
+        <div class="stat-icon" [ngClass]="stat.bgColor">
+          <span class="material-icons" [ngClass]="stat.iconColor">{{ stat.icon }}</span>
+        </div>
+        <div class="stat-details">
+          <h3>{{ stat.title }}</h3>
+          <p class="stat-value">{{ stat.value }}</p>
+          <p class="stat-change" [ngClass]="stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'">
+            {{ stat.change }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+     
+  <!-- Charts and Activity -->
+  <div class="dashboard-grid">
+    <!-- Recent Loans -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h3>Recent Loans</h3>
+        <span class="area-badge" *ngIf="selectedAreaId !== 'all'">{{ getSelectedAreaName() }}</span>
+      </div>
+      <div class="card-content">
+        <div class="recent-loans">
+          <div *ngFor="let loan of recentLoans" class="loan-item">
+            <div class="loan-info">
+              <p class="loan-customer">{{ loan.customer }}</p>
+              <p class="loan-item-name">{{ loan.item }}</p>
+            </div>
+            <div class="loan-details">
+              <p class="loan-amount">{{ loan.amount }}</p>
+              <p class="loan-date">{{ loan.date }}</p>
+            </div>
+          </div>
+          <div *ngIf="recentLoans.length === 0" class="no-data">
+            <span class="material-icons">info</span>
+            <p>No recent loans for selected area</p>
+          </div>
+        </div>
+      </div>
+    </div>
+       
+    <!-- Pending Actions -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h3>Pending Actions</h3>
+        <span class="area-badge" *ngIf="selectedAreaId !== 'all'">{{ getSelectedAreaName() }}</span>
+      </div>
+      <div class="card-content">
+        <div class="pending-actions">
+          <div *ngFor="let action of pendingActions" class="action-item">
+            <div class="action-info">
+              <div class="action-icon" [ngClass]="action.bg">
+                <span class="material-icons" [ngClass]="action.color">schedule</span>
+              </div>
+              <span class="action-text">{{ action.action }}</span>
+            </div>
+            <span class="action-count" [ngClass]="[action.bg, action.color]">
+              {{ action.count }}
+            </span>
+          </div>
+          <div *ngIf="pendingActions.length === 0" class="no-data">
+            <span class="material-icons">check_circle</span>
+            <p>No pending actions for selected area</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

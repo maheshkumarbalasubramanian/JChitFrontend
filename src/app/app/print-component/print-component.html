@@ -1,0 +1,131 @@
+<div class="print-container" *ngIf="loan" id="printArea">
+    <!-- Header -->
+    <div class="receipt-header">
+      <div class="header-left">
+        <img src="assets/logo.png" alt="Logo" class="company-logo">
+        <div class="loan-number">L.NO : {{ loan.loanNumber }}</div>
+      </div>
+      
+      <div class="header-center">
+        <div class="company-name-tamil">ஸ்ரீ லெக்ஷ்மி & கோ</div>
+        <div class="company-name">Sri Lakshmi & Co</div>
+        <div class="company-address">
+          HMS காம்பெளக்ஸ் ஓம்முற்கள் ஆட்டோஸ்டாப்பரில் அருகில்<br>
+          தவறாங்குறிச்சி - 621314<br>
+          9942219882 - 7904001399
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="amount">₹ {{ loan.loanAmount | number:'1.0-0' }}</div>
+        <div class="date">தேதி: {{ loan.loanDate | date:'dd-MM-yyyy' }}</div>
+        <div class="maturity">காலாவதியாகும்தேதி: {{ loan.maturityDate | date:'dd-MM-yyyy' }}</div>
+      </div>
+    </div>
+
+    <!-- Scheme Name -->
+    <div class="scheme-name">
+      திட்டம்: {{ schemeName }} {{ loan.dueMonths }} Month
+    </div>
+
+    <div class="content-section">
+      <!-- Customer Details Section -->
+      <div class="customer-section">
+        <div class="customer-info">
+          <div class="info-title">வின்னைத்துரை</div>
+          <div class="customer-name">{{ customerName }}</div>
+          <div class="customer-address">{{ customerAddress }}</div>
+          <div class="customer-mobile">
+            <i class="phone-icon">📞</i> {{ customerMobile }}
+          </div>
+          <div class="loan-amount-words">
+            கடன் தொகை அசல் ரூபாய் : {{ getLoanAmountInWords() }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Photos Section -->
+      <div class="photos-section">
+        <div class="photo-box">
+          <img [src]="customerImageUrl" alt="Customer Photo" *ngIf="customerImageUrl">
+          <div class="no-photo" *ngIf="!customerImageUrl">No Photo</div>
+        </div>
+        <div class="photo-box">
+          <img [src]="firstItemImage" alt="Item Photo" *ngIf="firstItemImage">
+          <div class="no-photo" *ngIf="!firstItemImage">No Photo</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th>அடகு பொருட்கள் விபரம்</th>
+          <th>No</th>
+          <th>T-W-T</th>
+          <th>ST/OT</th>
+          <th>G-W-T</th>
+          <th>N/W</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of loan.pledgedItems">
+          <td>{{ item.itemName }}</td>
+          <td>{{ item.qty }}</td>
+          <td>{{ item.grossWeight | number:'1.3-3' }}</td>
+          <td>{{ item.stoneWeight | number:'1.3-3' }}</td>
+          <td>{{ item.grossWeight - item.stoneWeight | number:'1.3-3' }}</td>
+          <td>{{ item.netWeight | number:'1.3-3' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Totals -->
+    <div class="totals-section">
+      <div class="total-left">
+        பொருட்களின் மதிப்பு : {{ loan.totalMaximumValue | number:'1.0-0' }}
+      </div>
+      <div class="total-right">
+        எடை : {{ loan.totalNetWeight | number:'1.3-3' }}
+        <span class="separator">மொத்த உருப்படி:{{ loan.pledgedItems?.length || 0 }}</span>
+      </div>
+    </div>
+
+    <!-- Terms and Conditions -->
+    <div class="terms-section">
+      <div class="business-hours">
+        வேலை நேரம் : 9:00 A.M to 5:00 P.M. விடுமுறை : ஞாயிறுகள்மட்டும் மற்றும் முக்கிய பண்டிகை நாட்கள்
+      </div>
+      
+      <div class="terms-text">
+        மேற்கண்ட திட்டத்தின்படி அடகு வைக்க சம்மதிக்கிறேன். நகைகளை மீட்க தவறுமட்டத்தில் எனும்
+        விட்சம்மதம் தெரிவிக்கிறேன். அத்துடன நான் ஒப்புக்கு படிவத்தில் கையொப்பமிட்டுள்ளேன். இதனை
+        விட எனக்கும் சம்மதிக்கிறேன். பகுதி மன்னனான் சம்மதிக்கிறேன்.
+      </div>
+
+      <div class="signature-section">
+        <div class="customer-signature">
+          <div class="signature-line"></div>
+          <div class="signature-label">வாடிக்கையாளர் கையொப்பம் (அ) கைரேகை</div>
+        </div>
+        
+        <div class="company-signature">
+          <div class="signature-image">
+            <img src="assets/signature.png" alt="Signature" *ngIf="companySignature">
+          </div>
+          <div class="signature-label">For ஸ்ரீ லெக்ஷ்மி & கோ,</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Print Button (hidden in print) -->
+  <div class="print-actions no-print">
+    <button (click)="printReceipt()" class="btn-print">
+      <i class="fa fa-print"></i> Print Receipt
+    </button>
+    <button (click)="goBack()" class="btn-back">
+      <i class="fa fa-arrow-left"></i> Back
+    </button>
+  </div>

@@ -1,0 +1,139 @@
+<div class="add-area-container">
+  <form [formGroup]="areaForm" (ngSubmit)="onSubmit()" class="area-form">
+    <div class="header">
+      <h2>{{ isEditMode ? 'Edit Area' : 'Add New Area' }}</h2>
+      <button type="button" class="close-btn" (click)="onCancel()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <div class="form-content">
+      <!-- Company Dropdown -->
+      <div class="field-group">
+        <label class="field-label">Company <span class="required">*</span></label>
+        <select 
+          class="field-input" 
+          formControlName="companyId"
+          [class.invalid]="isFieldInvalid('companyId')"
+          [disabled]="loadingCompanies">
+          <option value="">Select a company</option>
+          <option *ngFor="let company of companies" [value]="company.id">
+            {{ company.code }} - {{ company.name }}
+          </option>
+        </select>
+        <div class="error-text" *ngIf="isFieldInvalid('companyId')">
+          {{ getFieldError('companyId') }}
+        </div>
+        <div class="field-hint">
+          Select the company under which this area will be created
+        </div>
+      </div>
+
+      <!-- Area Code -->
+      <div class="field-group">
+        <label class="field-label">Area Code <span class="required">*</span></label>
+        <input 
+          type="text" 
+          class="field-input" 
+          formControlName="areaCode" 
+          placeholder="Enter area code (e.g., AR001)"
+          [class.invalid]="isFieldInvalid('areaCode')"
+          [readonly]="isEditMode">
+        <div class="error-text" *ngIf="isFieldInvalid('areaCode')">
+          {{ getFieldError('areaCode') }}
+        </div>
+        <div class="field-hint" *ngIf="!isEditMode">
+          Area code should be unique and follow format like AR001, AR002, etc.
+        </div>
+        <div class="field-hint" *ngIf="isEditMode">
+          Area code cannot be changed after creation
+        </div>
+      </div>
+
+      <!-- Area Name -->
+      <div class="field-group">
+        <label class="field-label">Area Name <span class="required">*</span></label>
+        <input 
+          type="text" 
+          class="field-input" 
+          formControlName="areaName" 
+          placeholder="Enter area name (e.g., Jubilee Hills)"
+          [class.invalid]="isFieldInvalid('areaName')">
+        <div class="error-text" *ngIf="isFieldInvalid('areaName')">
+          {{ getFieldError('areaName') }}
+        </div>
+        <div class="field-hint">
+          Enter a descriptive name for the area
+        </div>
+      </div>
+
+      <!-- Area Type -->
+      <div class="field-group">
+        <label class="field-label">Area Type <span class="required">*</span></label>
+        <select 
+          class="field-input" 
+          formControlName="areaType"
+          [class.invalid]="isFieldInvalid('areaType')">
+          <option value="PRIMARY">Primary</option>
+          <option value="SECONDARY">Secondary</option>
+          <option value="RURAL">Rural</option>
+          <option value="URBAN">Urban</option>
+        </select>
+        <div class="error-text" *ngIf="isFieldInvalid('areaType')">
+          {{ getFieldError('areaType') }}
+        </div>
+        <div class="field-hint">
+          Select the type that best describes this area
+        </div>
+      </div>
+
+      <!-- Pincode -->
+      <div class="field-group">
+        <label class="field-label">Pincode</label>
+        <input 
+          type="text" 
+          class="field-input" 
+          formControlName="pincode" 
+          placeholder="Enter 6-digit pincode"
+          maxlength="6"
+          [class.invalid]="isFieldInvalid('pincode')">
+        <div class="error-text" *ngIf="isFieldInvalid('pincode')">
+          {{ getFieldError('pincode') }}
+        </div>
+        <div class="field-hint">
+          Optional 6-digit postal code for this area
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="field-group">
+        <label class="field-label">Description</label>
+        <textarea 
+          class="field-input textarea-input" 
+          formControlName="description" 
+          placeholder="Enter area description (optional)"
+          rows="3"
+          [class.invalid]="isFieldInvalid('description')">
+        </textarea>
+        <div class="error-text" *ngIf="isFieldInvalid('description')">
+          {{ getFieldError('description') }}
+        </div>
+        <div class="field-hint">
+          Optional description about the area's characteristics or location details
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="areaForm.invalid || isLoading || loadingCompanies">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update Area' : 'Save Area') }}
+      </button>
+    </div>
+  </form>
+</div>

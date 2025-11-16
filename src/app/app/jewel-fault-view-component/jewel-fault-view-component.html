@@ -1,0 +1,277 @@
+<div class="faults-container">
+  <div class="header">
+    <h1>Jewel Faults</h1>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="exportFaults()">
+        <i class="fa fa-download"></i> Export
+      </button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-number">{{ stats.total }}</div>
+      <div class="stat-label">TOTAL</div>
+    </div>
+    <div class="stat-card active">
+      <div class="stat-number">{{ stats.active }}</div>
+      <div class="stat-label">ACTIVE</div>
+    </div>
+    <div class="stat-card inactive">
+      <div class="stat-number">{{ stats.inactive }}</div>
+      <div class="stat-label">INACTIVE</div>
+    </div>
+    <div class="stat-card recent">
+      <div class="stat-number">{{ stats.recent }}</div>
+      <div class="stat-label">RECENT</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-box">
+      <i class="fa fa-search"></i>
+      <input 
+        type="text" 
+        placeholder="Search faults..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()">
+    </div>
+    <div class="controls-right">
+      <button 
+        class="btn btn-outline" 
+        (click)="toggleFilter()"
+        [class.active]="showFilters">
+        <i class="fa fa-filter"></i>
+      </button>
+      <div class="view-toggle">
+        <button 
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')">
+          <i class="fa fa-th"></i>
+        </button>
+        <button 
+          [class.active]="viewMode === 'list'"
+          (click)="setViewMode('list')">
+          <i class="fa fa-list"></i>
+        </button>
+      </div>
+      <button 
+        class="btn btn-outline" 
+        (click)="refreshData()"
+        [disabled]="isLoading">
+        <i class="fa fa-sync" [class.fa-spin]="isLoading"></i>
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="addNewFault()">
+        <i class="fa fa-plus"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section" *ngIf="showFilters">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="statusFilter" (change)="applyFilters()">
+          <option value="">All Status</option>
+          <option value="active">Active Only</option>
+          <option value="inactive">Inactive Only</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Item Group:</label>
+        <select [(ngModel)]="itemGroupFilter" (change)="applyFilters()">
+          <option value="">All Groups</option>
+          <option *ngFor="let group of itemGroups" [value]="group.id">
+            {{ group.groupName }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Type:</label>
+        <select [(ngModel)]="typeFilter" (change)="applyFilters()">
+          <option value="">All Types</option>
+          <option value="PHYSICAL">Physical</option>
+          <option value="QUALITY">Quality</option>
+          <option value="STRUCTURAL">Structural</option>
+          <option value="AESTHETIC">Aesthetic</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Severity:</label>
+        <select [(ngModel)]="severityFilter" (change)="applyFilters()">
+          <option value="">All Severities</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+          <option value="CRITICAL">Critical</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Valuation Impact:</label>
+        <select [(ngModel)]="valuationFilter" (change)="applyFilters()">
+          <option value="">All</option>
+          <option value="affects">Affects Valuation</option>
+          <option value="noaffect">No Impact</option>
+        </select>
+      </div>
+      <button class="btn btn-outline btn-sm" (click)="clearFilters()">
+        <i class="fa fa-times"></i> Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <div class="list-controls">
+    <div class="list-info">
+      Showing {{ filteredFaults.length }} of {{ faults.length }} faults
+    </div>
+    <div class="sort-controls">
+      <span>Sort by:</span>
+      <select [(ngModel)]="sortBy" (change)="applySorting()">
+        <option value="faultName">Fault Name</option>
+        <option value="faultCode">Fault Code</option>
+        <option value="faultType">Fault Type</option>
+        <option value="severity">Severity</option>
+        <option value="createdDate">Date Created</option>
+      </select>
+      <button 
+        class="btn btn-outline sort-direction" 
+        (click)="toggleSortDirection()"
+        [title]="sortDirection === 'asc' ? 'Sort Ascending' : 'Sort Descending'">
+        <i class="fa" [class.fa-arrow-up]="sortDirection === 'asc'" [class.fa-arrow-down]="sortDirection === 'desc'"></i>
+      </button>
+    </div>
+    <div class="select-all">
+      <input 
+        type="checkbox" 
+        id="selectAll"
+        [checked]="isAllSelected()"
+        [indeterminate]="isSomeSelected()"
+        (change)="toggleSelectAll($event)">
+      <label for="selectAll">Select All</label>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fa fa-spinner fa-spin"></i>
+    <p>Loading faults...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && filteredFaults.length === 0">
+    <i class="fa fa-exclamation-triangle"></i>
+    <h3>No faults found</h3>
+    <p *ngIf="searchTerm || statusFilter || typeFilter || severityFilter || valuationFilter || itemGroupFilter">
+      Try adjusting your search criteria or filters
+    </p>
+    <p *ngIf="!searchTerm && !statusFilter && !typeFilter && !severityFilter && !valuationFilter && !itemGroupFilter">
+      Create your first fault entry to get started
+    </p>
+    <button class="btn btn-primary" (click)="addNewFault()">
+      <i class="fa fa-plus"></i> Add Fault
+    </button>
+  </div>
+
+  <!-- Faults Grid/List -->
+  <div 
+    class="faults-container-view" 
+    [class.grid-view]="viewMode === 'grid'"
+    [class.list-view]="viewMode === 'list'"
+    *ngIf="!isLoading && filteredFaults.length > 0">
+    
+    <div 
+      *ngFor="let fault of filteredFaults; trackBy: trackByFaultId" 
+      class="fault-card"
+      [class.selected]="isSelected(fault.id)"
+      (click)="selectFault(fault)">
+      
+      <input 
+        type="checkbox" 
+        class="checkbox"
+        [checked]="isSelected(fault.id)"
+        (click)="$event.stopPropagation()"
+        (change)="toggleSelection(fault.id!, $event)">
+      
+      <div class="status-badge" [class.active]="fault.isActive" [class.inactive]="!fault.isActive">
+        {{ fault.isActive ? 'ACTIVE' : 'INACTIVE' }}
+      </div>
+      
+      <div class="fault-avatar" [ngClass]="getFaultAvatarClass(fault.faultType)">
+        {{ getFaultDisplay(fault) }}
+      </div>
+      
+      <div class="fault-content">
+        <div class="fault-name">{{ fault.faultName }}</div>
+        <div class="fault-code">{{ fault.faultCode }}</div>
+        <div class="fault-description" *ngIf="fault.description">
+          {{ fault.description }}
+        </div>
+      </div>
+      
+      <div class="fault-badges">
+        <div class="type-badge" [ngClass]="fault.faultType.toLowerCase()">
+          {{ fault.faultType }}
+        </div>
+        <div class="severity-badge" [ngClass]="getSeverityClass(fault.severity)">
+          <i class="fa fa-exclamation-circle"></i>
+          {{ fault.severity }}
+        </div>
+      </div>
+      
+      <div class="fault-details">
+        <div class="fault-detail" *ngIf="fault.itemGroupName">
+          <i class="fa fa-layer-group"></i>
+          <span>{{ fault.itemGroupName }}</span>
+        </div>
+        <div class="fault-detail" *ngIf="fault.affectsValuation">
+          <i class="fa fa-percentage"></i>
+          <span>Impact: {{ fault.valuationImpactPercentage }}%</span>
+        </div>
+        <div class="fault-detail" *ngIf="!fault.affectsValuation">
+          <i class="fa fa-check-circle"></i>
+          <span>No valuation impact</span>
+        </div>
+        <div class="fault-detail">
+          <i class="fa fa-calendar"></i>
+          <span>{{ fault.createdDate | date:'shortDate' }}</span>
+        </div>
+      </div>
+      
+      <div class="fault-actions" (click)="$event.stopPropagation()">
+        <button 
+          class="action-btn edit" 
+          (click)="editFault(fault)"
+          title="Edit Fault">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button 
+          class="action-btn delete" 
+          (click)="deleteFault(fault)"
+          title="Delete Fault">
+          <i class="fa fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Actions -->
+  <div class="bulk-actions" *ngIf="selectedFaults.size > 0">
+    <div class="bulk-info">
+      {{ selectedFaults.size }} fault(s) selected
+    </div>
+    <div class="bulk-buttons">
+      <button class="btn btn-outline" (click)="bulkActivate()">
+        <i class="fa fa-check"></i> Activate
+      </button>
+      <button class="btn btn-outline" (click)="bulkDeactivate()">
+        <i class="fa fa-times"></i> Deactivate
+      </button>
+      <button class="btn btn-danger" (click)="bulkDelete()">
+        <i class="fa fa-trash"></i> Delete
+      </button>
+    </div>
+  </div>
+</div>

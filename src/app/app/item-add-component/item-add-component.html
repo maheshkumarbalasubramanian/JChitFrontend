@@ -1,0 +1,186 @@
+<div class="item-add-container">
+    <div class="header">
+      <h2>{{ isEditMode ? 'Edit' : 'Add New' }} Item</h2>
+      <div class="header-actions">
+        <button type="button" class="btn btn-outline" (click)="goToItemGroups()">
+          <i class="fa fa-cog"></i> Manage Groups
+        </button>
+        <button type="button" class="btn btn-outline" (click)="goToPurities()">
+          <i class="fa fa-diamond"></i> Manage Purities
+        </button>
+        <button type="button" class="close-btn" (click)="onCancel()">
+          <i class="fa fa-times"></i>
+        </button>
+      </div>
+    </div>
+  
+    <form [formGroup]="itemForm" (ngSubmit)="onSubmit()" class="item-form">
+      <!-- Basic Information Section -->
+      <div class="form-section">
+        <h3>Basic Information</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="itemCode">Item Code <span class="required">*</span></label>
+            <input type="text" 
+                   id="itemCode" 
+                   class="form-control" 
+                   formControlName="itemCode" 
+                   readonly 
+                   [class.is-invalid]="isFieldInvalid('itemCode')">
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('itemCode')">
+              {{ getFieldError('itemCode') }}
+            </div>
+          </div>
+  
+          <div class="form-group">
+            <label for="itemGroupId">Item Group <span class="required">*</span></label>
+            <select id="itemGroupId" 
+                    class="form-control" 
+                    formControlName="itemGroupId" 
+                    [class.is-invalid]="isFieldInvalid('itemGroupId')">
+              <option value="">Select Item Group</option>
+              <option *ngFor="let group of itemGroups" [value]="group.id">
+                {{ group.groupName }} ({{ group.groupCode }})
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('itemGroupId')">
+              {{ getFieldError('itemGroupId') }}
+            </div>
+          </div>
+        </div>
+  
+        <div class="form-row">
+          <div class="form-group">
+            <label for="itemName">Item Name (English) <span class="required">*</span></label>
+            <input type="text" 
+                   id="itemName" 
+                   class="form-control" 
+                   formControlName="itemName" 
+                   placeholder="e.g., Gold Bangles, Silver Chain"
+                   [class.is-invalid]="isFieldInvalid('itemName')">
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('itemName')">
+              {{ getFieldError('itemName') }}
+            </div>
+          </div>
+  
+          <div class="form-group">
+            <label for="itemNameTamil">Item Name (Tamil)</label>
+            <input type="text" 
+                   id="itemNameTamil" 
+                   class="form-control" 
+                   formControlName="itemNameTamil" 
+                   placeholder="தமிழில் பொருள் பெயர்">
+          </div>
+        </div>
+  
+        <div class="form-row">
+          <div class="form-group">
+            <label for="purityId">Purity (Optional)</label>
+            <select id="purityId" 
+                    class="form-control" 
+                    formControlName="purityId"
+                    [disabled]="!itemForm.get('itemGroupId')?.value">
+              <option value="">Select Purity (Optional)</option>
+              <option *ngFor="let purity of filteredPurities" [value]="purity.id">
+                {{ purity.purityName }} ({{ purity.purityPercentage }}%{{ purity.karat ? ', ' + purity.karat + 'K' : '' }})
+              </option>
+            </select>
+            <small class="form-text" *ngIf="!itemForm.get('itemGroupId')?.value">
+              Select an item group first to see available purities
+            </small>
+            <small class="form-text" *ngIf="itemForm.get('itemGroupId')?.value && filteredPurities.length === 0">
+              No purities available for this group. <a href="#" (click)="goToPurities()">Add purities</a>
+            </small>
+          </div>
+  
+          <div class="form-group">
+            <label for="isActive">Status</label>
+            <select id="isActive" class="form-control" formControlName="isActive">
+              <option [value]="true">Active</option>
+              <option [value]="false">Inactive</option>
+            </select>
+          </div>
+        </div>
+  
+        <div class="form-row">
+          <div class="form-group full-width">
+            <label for="description">Description</label>
+            <textarea id="description" 
+                      class="form-control" 
+                      formControlName="description" 
+                      rows="3"
+                      placeholder="Enter description for this item..."></textarea>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Item Templates Section -->
+      <div class="templates-section" *ngIf="getSelectedGroupTemplates().length > 0">
+        <h4>Quick Templates for {{ getSelectedItemGroupName() }}:</h4>
+        <div class="templates-grid">
+          <div *ngFor="let template of getSelectedGroupTemplates()" 
+               class="template-item"
+               (click)="applyItemTemplate(template)">
+            <div class="template-name">{{ template }}</div>
+          </div>
+        </div>
+        <p class="template-help">Click on any template to auto-fill the item name</p>
+      </div>
+  
+      <!-- Item Examples Section -->
+      <div class="examples-section">
+        <h4>Examples by Category:</h4>
+        <div class="examples-grid">
+          <div class="example-category">
+            <strong>Gold Items</strong>
+            <div class="example-items">
+              <span>Bangles</span>
+              <span>Chains</span>
+              <span>Rings</span>
+              <span>Earrings</span>
+              <span>Necklaces</span>
+              <span>Pendants</span>
+              <span>Coins</span>
+              <span>Bars</span>
+            </div>
+          </div>
+          
+          <div class="example-category">
+            <strong>Silver Items</strong>
+            <div class="example-items">
+              <span>Bangles</span>
+              <span>Chains</span>
+              <span>Anklets</span>
+              <span>Utensils</span>
+              <span>Decorative Items</span>
+              <span>Coins</span>
+            </div>
+          </div>
+          
+          <div class="example-category">
+            <strong>Platinum Items</strong>
+            <div class="example-items">
+              <span>Rings</span>
+              <span>Chains</span>
+              <span>Earrings</span>
+              <span>Bracelets</span>
+              <span>Pendants</span>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+          <i class="fa fa-times"></i> Cancel
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="itemForm.invalid || isLoading">
+          <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+          <i class="fa fa-save" *ngIf="!isLoading"></i>
+          {{ isLoading ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }} Item
+        </button>
+      </div>
+    </form>
+  </div>

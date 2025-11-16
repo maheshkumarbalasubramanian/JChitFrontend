@@ -1,0 +1,107 @@
+<div class="add-company-container">
+  <form [formGroup]="companyForm" (ngSubmit)="onSubmit()" class="company-form">
+    <div class="header">
+      <h2>{{ isEditMode ? 'Edit Company' : 'Add New Company' }}</h2>
+      <button type="button" class="close-btn" (click)="onCancel()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <div class="form-content">
+      <!-- Logo Upload Section -->
+      <div class="field-group logo-section">
+        <label class="field-label">Company Logo</label>
+        <div class="logo-upload-container">
+          <div class="logo-preview" *ngIf="logoPreview">
+            <img [src]="logoPreview" alt="Company Logo Preview">
+            <button type="button" class="remove-logo-btn" (click)="removeLogos()">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>
+          
+          <div class="logo-upload-box" *ngIf="!logoPreview">
+            <input 
+              type="file" 
+              id="logoInput"
+              accept="image/*"
+              (change)="onLogoSelected($event)"
+              style="display: none">
+            <label for="logoInput" class="upload-label">
+              <i class="fa fa-cloud-upload"></i>
+              <span>Click to upload logo</span>
+              <small>PNG, JPG or GIF (Max 2MB)</small>
+            </label>
+          </div>
+        </div>
+        <div class="field-hint">
+          Upload a company logo (optional). Recommended size: 200x200px
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Company Code <span class="required">*</span></label>
+        <input 
+          type="text" 
+          class="field-input" 
+          formControlName="companyCode" 
+          placeholder="Enter Company code (e.g., CO001)"
+          [class.invalid]="isFieldInvalid('companyCode')"
+          [readonly]="isEditMode">
+        <div class="error-text" *ngIf="isFieldInvalid('companyCode')">
+          {{ getFieldError('companyCode') }}
+        </div>
+        <div class="field-hint" *ngIf="!isEditMode">
+          Company code should be unique and follow format like CO001, CO002, etc.
+        </div>
+        <div class="field-hint" *ngIf="isEditMode">
+          Company code cannot be changed after creation
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Company Name <span class="required">*</span></label>
+        <input 
+          type="text" 
+          class="field-input" 
+          formControlName="companyName" 
+          placeholder="Enter Company name (e.g., Tech Solutions Inc.)"
+          [class.invalid]="isFieldInvalid('companyName')">
+        <div class="error-text" *ngIf="isFieldInvalid('companyName')">
+          {{ getFieldError('companyName') }}
+        </div>
+        <div class="field-hint">
+          Enter the official name of the company
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Description</label>
+        <textarea 
+          class="field-input textarea-input" 
+          formControlName="description" 
+          placeholder="Enter company description (optional)"
+          rows="3"
+          [class.invalid]="isFieldInvalid('description')">
+        </textarea>
+        <div class="error-text" *ngIf="isFieldInvalid('description')">
+          {{ getFieldError('description') }}
+        </div>
+        <div class="field-hint">
+          Optional description about the company
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="companyForm.invalid || isLoading">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? (isEditMode ? 'Updating...' : 'Saving...') : (isEditMode ? 'Update Company' : 'Save Company') }}
+      </button>
+    </div>
+  </form>
+</div>

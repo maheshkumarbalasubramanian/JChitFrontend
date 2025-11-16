@@ -1,0 +1,134 @@
+<div class="item-group-add-container">
+  <div class="header">
+    <h2>{{ isEditMode ? 'Edit' : 'Add New' }} Item Group</h2>
+    <button type="button" class="close-btn" (click)="onCancel()">
+      <i class="fa fa-times"></i>
+    </button>
+  </div>
+
+  <form [formGroup]="itemGroupForm" (ngSubmit)="onSubmit()" class="item-group-form">
+    <!-- Basic Information Section -->
+    <div class="form-section">
+      <h3>Basic Information</h3>
+      
+      <!-- Area Dropdown -->
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="areaId">Area <span class="required">*</span></label>
+          <select id="areaId" 
+                  class="form-control" 
+                  formControlName="areaId"
+                  [class.is-invalid]="isFieldInvalid('areaId')"
+                  [disabled]="loadingAreas">
+            <option value="">Select an area</option>
+            <option *ngFor="let area of areas" [value]="area.id">
+              {{ area.code }} - {{ area.name }} ({{ area.companyName }})
+            </option>
+          </select>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('areaId')">
+            {{ getFieldError('areaId') }}
+          </div>
+          <small class="form-text text-muted">
+            Select the area under which this item group will be created
+          </small>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="groupCode">Group Code <span class="required">*</span></label>
+          <input type="text" 
+                 id="groupCode" 
+                 class="form-control" 
+                 formControlName="groupCode" 
+                 readonly 
+                 [class.is-invalid]="isFieldInvalid('groupCode')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('groupCode')">
+            {{ getFieldError('groupCode') }}
+          </div>
+          <small class="form-text text-muted">
+            Auto-generated unique code
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="groupName">Group Name (English) <span class="required">*</span></label>
+          <input type="text" 
+                 id="groupName" 
+                 class="form-control" 
+                 formControlName="groupName" 
+                 placeholder="Enter group name (e.g., Gold, Silver)"
+                 [class.is-invalid]="isFieldInvalid('groupName')">
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('groupName')">
+            {{ getFieldError('groupName') }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="groupNameTamil">Group Name (Tamil)</label>
+          <input type="text" 
+                 id="groupNameTamil" 
+                 class="form-control" 
+                 formControlName="groupNameTamil" 
+                 placeholder="தமிழில் குழு பெயர்">
+        </div>
+
+        <div class="form-group">
+          <label for="isActive">Status</label>
+          <select id="isActive" class="form-control" formControlName="isActive">
+            <option [value]="true">Active</option>
+            <option [value]="false">Inactive</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group full-width">
+          <label for="description">Description</label>
+          <textarea id="description" 
+                    class="form-control" 
+                    formControlName="description" 
+                    rows="3"
+                    placeholder="Enter description for this item group..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Examples Section -->
+    <div class="examples-section">
+      <h4>Examples of Item Groups:</h4>
+      <div class="examples-grid">
+        <div class="example-item">
+          <strong>GOLD</strong>
+          <span>Gold jewelry, ornaments, coins</span>
+        </div>
+        <div class="example-item">
+          <strong>SILVER</strong>
+          <span>Silver jewelry, utensils, decorative items</span>
+        </div>
+        <div class="example-item">
+          <strong>PLATINUM</strong>
+          <span>Platinum jewelry, rings, chains</span>
+        </div>
+        <div class="example-item">
+          <strong>DIAMOND</strong>
+          <span>Diamond jewelry, rings, earrings</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="itemGroupForm.invalid || isLoading || loadingAreas">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }} Item Group
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,1 +1,50 @@
-/* You can add global styles to this file, and also import other style files */
+// Global print styles - hide everything except print content
+@media print {
+    // Hide app structure elements
+    app-root > *:not(router-outlet):not(.print-container) {
+      display: none !important;
+    }
+    
+    // Hide common navigation elements
+    .sidebar,
+    .navbar,
+    .header,
+    .navigation,
+    .menu,
+    app-sidebar,
+    app-header,
+    app-navbar,
+    nav,
+    header,
+    aside {
+      display: none !important;
+    }
+    
+    // Ensure print container takes full page
+    .print-container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      margin: 0;
+      padding: 10mm;
+    }
+    
+    // Remove all shadows and backgrounds for print
+    * {
+      box-shadow: none !important;
+      background: white !important;
+    }
+    
+    // Page setup
+    @page {
+      margin: 10mm;
+      size: A4 portrait;
+    }
+    
+    // Hide action buttons during print
+    .no-print,
+    .action-buttons {
+      display: none !important;
+    }
+  }

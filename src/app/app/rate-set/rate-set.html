@@ -1,0 +1,172 @@
+<div class="add-rateset-container">
+  <form [formGroup]="rateSetForm" (ngSubmit)="onSubmit()" class="rateset-form">
+    <div class="header">
+      <h2>{{ isEditMode ? 'Edit' : 'Add' }} Rate Set</h2>
+      <button type="button" class="close-btn" (click)="onCancel()">
+        <i class="fa fa-times"></i>
+      </button>
+    </div>
+
+    <div class="form-content">
+      <!-- Area Selection -->
+      <div class="field-group">
+        <label class="field-label">Area <span class="required">*</span></label>
+        <select 
+          class="field-input" 
+          formControlName="areaId"
+          [class.invalid]="isFieldInvalid('areaId')"
+          [disabled]="isLoadingAreas">
+          <option value="">{{ isLoadingAreas ? 'Loading areas...' : 'Select Area' }}</option>
+          <option *ngFor="let area of areas" [value]="area.id">
+            {{ area.areaCode }} - {{ area.areaName }}
+          </option>
+        </select>
+        <div class="error-text" *ngIf="isFieldInvalid('areaId')">
+          {{ getFieldError('areaId') }}
+        </div>
+        <div class="field-hint">
+          Select the area for which these rates will apply
+        </div>
+      </div>
+
+      <!-- Rate Date -->
+      <div class="field-group">
+        <label class="field-label">Effective Date <span class="required">*</span></label>
+        <input 
+          type="date" 
+          class="field-input" 
+          formControlName="effectiveDate"
+          [min]="getMinDate()"
+          [class.invalid]="isFieldInvalid('effectiveDate')">
+        <div class="error-text" *ngIf="isFieldInvalid('effectiveDate')">
+          {{ getFieldError('effectiveDate') }}
+        </div>
+        <div class="field-hint">
+          Date from which these rates will be effective (today or future dates only)
+        </div>
+      </div>
+
+      <!-- Gold Rates Section -->
+      <div class="rates-section">
+        <h3 class="section-title">
+          <i class="fa fa-coins"></i>
+          Gold Rates
+        </h3>
+        
+        <div class="rates-grid">
+          <div class="field-group">
+            <label class="field-label">Gold Rate/Gram <span class="required">*</span></label>
+            <div class="input-with-currency">
+              <span class="currency-symbol">₹</span>
+              <input 
+                type="number" 
+                class="field-input currency-input" 
+                formControlName="goldRatePerGram" 
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('goldRatePerGram')">
+            </div>
+            <div class="error-text" *ngIf="isFieldInvalid('goldRatePerGram')">
+              {{ getFieldError('goldRatePerGram') }}
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Gold Purity Rate/Gram <span class="required">*</span></label>
+            <div class="input-with-currency">
+              <span class="currency-symbol">₹</span>
+              <input 
+                type="number" 
+                class="field-input currency-input" 
+                formControlName="goldPurityRatePerGram" 
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('goldPurityRatePerGram')">
+            </div>
+            <div class="error-text" *ngIf="isFieldInvalid('goldPurityRatePerGram')">
+              {{ getFieldError('goldPurityRatePerGram') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Silver Rates Section -->
+      <div class="rates-section">
+        <h3 class="section-title">
+          <i class="fa fa-medal"></i>
+          Silver Rates
+        </h3>
+        
+        <div class="rates-grid">
+          <div class="field-group">
+            <label class="field-label">Silver Rate/Gram <span class="required">*</span></label>
+            <div class="input-with-currency">
+              <span class="currency-symbol">₹</span>
+              <input 
+                type="number" 
+                class="field-input currency-input" 
+                formControlName="silverRatePerGram" 
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('silverRatePerGram')">
+            </div>
+            <div class="error-text" *ngIf="isFieldInvalid('silverRatePerGram')">
+              {{ getFieldError('silverRatePerGram') }}
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">Silver Purity Rate/Gram <span class="required">*</span></label>
+            <div class="input-with-currency">
+              <span class="currency-symbol">₹</span>
+              <input 
+                type="number" 
+                class="field-input currency-input" 
+                formControlName="silverPurityRatePerGram" 
+                placeholder="0.00"
+                step="0.01"
+                min="0"
+                [class.invalid]="isFieldInvalid('silverPurityRatePerGram')">
+            </div>
+            <div class="error-text" *ngIf="isFieldInvalid('silverPurityRatePerGram')">
+              {{ getFieldError('silverPurityRatePerGram') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Information -->
+      <div class="field-group">
+        <label class="field-label">Notes</label>
+        <textarea 
+          class="field-input textarea-input" 
+          formControlName="notes" 
+          placeholder="Additional notes about this rate set (optional)"
+          rows="3"
+          [class.invalid]="isFieldInvalid('notes')">
+        </textarea>
+        <div class="error-text" *ngIf="isFieldInvalid('notes')">
+          {{ getFieldError('notes') }}
+        </div>
+        <div class="field-hint">
+          Optional notes about market conditions or special considerations
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="onCancel()" [disabled]="isLoading">
+        <i class="fa fa-times"></i> Cancel
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="rateSetForm.invalid || isLoading || isLoadingAreas">
+        <i class="fa fa-spinner fa-spin" *ngIf="isLoading"></i>
+        <i class="fa fa-save" *ngIf="!isLoading"></i>
+        {{ isLoading ? 'Saving...' : (isEditMode ? 'Update' : 'Save') }} Rate Set
+      </button>
+    </div>
+  </form>
+</div>

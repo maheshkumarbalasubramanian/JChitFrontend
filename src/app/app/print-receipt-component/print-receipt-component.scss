@@ -1,0 +1,408 @@
+// Print-specific styles
+@media print {
+    // Hide everything except the receipt
+    body * {
+      visibility: hidden;
+    }
+    
+    .print-container,
+    .print-container * {
+      visibility: visible;
+    }
+    
+    .print-container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      max-width: none;
+      box-shadow: none;
+      margin: 0;
+      padding: 10mm;
+    }
+    
+    // Hide all non-print elements
+    .no-print,
+    app-sidebar,
+    app-header,
+    app-navigation,
+    .sidebar,
+    .header,
+    .navigation,
+    .navbar,
+    nav,
+    .action-buttons {
+      display: none !important;
+      visibility: hidden !important;
+    }
+  
+    // Ensure page breaks work correctly
+    @page {
+      margin: 10mm;
+      size: A4;
+    }
+  }
+  
+  // Rest of your existing styles...
+
+// Hide non-print elements when printing
+@media print {
+    .no-print {
+      display: none !important;
+    }
+    
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    
+    .print-container {
+      width: 100%;
+      max-width: none;
+      box-shadow: none;
+      margin: 0;
+      padding: 10mm;
+    }
+  }
+  
+  // Screen styles
+  .print-container {
+    max-width: 210mm; // A4 width
+    margin: 20px auto;
+    padding: 15mm;
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #000;
+  }
+  
+  .receipt-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+  
+    .company-logo {
+      .logo {
+        max-width: 80px;
+        max-height: 80px;
+      }
+    }
+  
+    .company-info {
+      text-align: center;
+      flex: 1;
+  
+      h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+        color: #d32f2f;
+      }
+  
+      p {
+        margin: 3px 0;
+        font-size: 11px;
+      }
+  
+      .license {
+        font-weight: bold;
+        margin-top: 5px;
+      }
+    }
+  }
+  
+  .receipt-title {
+    text-align: center;
+    margin: 15px 0;
+  
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+  }
+  
+  .receipt-info-bar {
+    display: flex;
+    justify-content: space-between;
+    background: #f5f5f5;
+    padding: 8px 15px;
+    border: 1px solid #000;
+    margin-bottom: 15px;
+  
+    .info-item {
+      .label {
+        font-weight: bold;
+        margin-right: 5px;
+      }
+    }
+  }
+  
+  .section {
+    margin-bottom: 15px;
+  
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+      font-weight: bold;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 3px;
+    }
+  }
+  
+  .details-table {
+    width: 100%;
+    border-collapse: collapse;
+  
+    td {
+      padding: 5px 8px;
+      border: 1px solid #ddd;
+    }
+  
+    .label-cell {
+      width: 25%;
+      font-weight: bold;
+      background: #f9f9f9;
+    }
+  
+    .value-cell {
+      width: 25%;
+    }
+  }
+  
+  .items-table,
+  .statement-table,
+  .modes-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  
+    th, td {
+      border: 1px solid #000;
+      padding: 6px 8px;
+      text-align: left;
+    }
+  
+    th {
+      background: #e0e0e0;
+      font-weight: bold;
+      text-align: center;
+    }
+  
+    td {
+      text-align: center;
+    }
+  
+    .photo-cell {
+      padding: 3px;
+    }
+  
+    .item-photo {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border: 1px solid #ccc;
+    }
+  }
+  
+  .payment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+  
+    tr {
+      border-bottom: 1px solid #ddd;
+    }
+  
+    td {
+      padding: 6px 10px;
+    }
+  
+    .label-cell {
+      width: 70%;
+      text-align: right;
+      padding-right: 15px;
+    }
+  
+    .amount-cell {
+      width: 30%;
+      text-align: right;
+      font-family: 'Courier New', monospace;
+    }
+  
+    .total-row {
+      border-top: 2px solid #000;
+      border-bottom: 2px double #000;
+      background: #f5f5f5;
+  
+      td {
+        padding: 8px 10px;
+        font-size: 14px;
+      }
+    }
+  }
+  
+  .amount-words {
+    padding: 10px;
+    background: #fff9e6;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    margin: 15px 0;
+    font-style: italic;
+  }
+  
+  .terms-section {
+    margin: 20px 0;
+    font-size: 10px;
+  
+    h4 {
+      margin: 0 0 8px 0;
+      font-size: 12px;
+    }
+  
+    ol {
+      margin: 0;
+      padding-left: 20px;
+  
+      li {
+        margin-bottom: 3px;
+      }
+    }
+  }
+  
+  .signatures-section {
+    display: flex;
+    justify-content: space-between;
+    margin: 30px 0 20px;
+  
+    .signature {
+      text-align: center;
+      width: 45%;
+  
+      .signature-line {
+        border-top: 1px solid #000;
+        margin-bottom: 5px;
+        height: 40px;
+      }
+  
+      p {
+        margin: 0;
+        font-weight: bold;
+        font-size: 11px;
+      }
+    }
+  }
+  
+  .receipt-footer {
+    text-align: center;
+    font-size: 10px;
+    color: #666;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+    margin-top: 20px;
+  
+    p {
+      margin: 3px 0;
+    }
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 50px;
+    font-size: 18px;
+  }
+  
+  .action-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+  
+    button {
+      padding: 12px 24px;
+      font-size: 14px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+  
+      &.btn-print {
+        background: #4caf50;
+        color: white;
+  
+        &:hover {
+          background: #45a049;
+        }
+      }
+  
+      &.btn-close {
+        background: #f44336;
+        color: white;
+  
+        &:hover {
+          background: #da190b;
+        }
+      }
+    }
+  }
+  
+  .remarks-section {
+    padding: 10px;
+    background: #f9f9f9;
+    border-left: 3px solid #2196f3;
+    margin: 15px 0;
+  }
+  // Print-specific styles
+@media print {
+  // Hide everything except the receipt
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-container,
+  .print-container * {
+    visibility: visible;
+  }
+  
+  .print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: none;
+    box-shadow: none;
+    margin: 0;
+    padding: 10mm;
+  }
+  
+  // Hide all non-print elements
+  .no-print,
+  app-sidebar,
+  app-header,
+  app-navigation,
+  .sidebar,
+  .header,
+  .navigation,
+  .navbar,
+  nav,
+  .action-buttons {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  // Ensure page breaks work correctly
+  @page {
+    margin: 10mm;
+    size: A4;
+  }
+}
+
+// Rest of your existing styles...

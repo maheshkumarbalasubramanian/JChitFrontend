@@ -1,0 +1,362 @@
+<div class="customer-list-container">
+    <!-- Compact Header Panel -->
+    <div class="main-header-panel">
+      <!-- Left Section: Title and Stats -->
+      <div class="header-left-section">
+        <h2>Customers</h2>
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="stat-number">{{ customerStats.totalCustomers }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ customerStats.activeCustomers }}</span>
+            <span class="stat-label">Active</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ customerStats.verifiedCustomers }}</span>
+            <span class="stat-label">Verified</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">{{ customerStats.recentCustomers }}</span>
+            <span class="stat-label">Recent</span>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Right Section: Controls -->
+      <div class="header-controls-section">
+        <!-- Search Box -->
+        <div class="compact-search-box">
+          <i class="fa fa-search search-icon"></i>
+          <input type="text" 
+                 placeholder="Search customers..." 
+                 [(ngModel)]="searchTerm"
+                 (input)="onSearchChange($event.target.value)"
+                 class="compact-search-input">
+          <button *ngIf="searchTerm" class="clear-search" (click)="onSearchChange('')">
+            <i class="fa fa-times"></i>
+          </button>
+        </div>
+  
+        <!-- Action Buttons Row -->
+        <div class="action-buttons">
+          <button class="btn btn-outline" (click)="toggleFilters()">
+            <i class="fa fa-filter"></i>
+            <span *ngIf="hasFilters()" class="filter-count">{{ getFilterCount() }}</span>
+          </button>
+          
+          <div class="view-toggle">
+            <button class="btn btn-outline" 
+                    [class.active]="viewMode === 'grid'"
+                    (click)="viewMode = 'grid'">
+              <i class="fa fa-th"></i>
+            </button>
+            <button class="btn btn-outline" 
+                    [class.active]="viewMode === 'list'"
+                    (click)="viewMode = 'list'">
+              <i class="fa fa-list"></i>
+            </button>
+          </div>
+  
+          <button class="btn btn-outline" (click)="refreshCustomers()">
+            <i class="fa fa-refresh" [class.fa-spin]="isLoading"></i>
+          </button>
+  
+          <button class="btn btn-primary" (click)="addNewCustomer()">
+            <i class="fa fa-plus"></i> 
+          </button>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Advanced Filters (Collapsible) -->
+    <div class="advanced-filters-panel" *ngIf="showFilters">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Area</label>
+          <select [(ngModel)]="filters.area" (change)="applyFilters()">
+            <option value="">All Areas</option>
+            <option value="PRIMARY">Primary</option>
+            <option value="SECONDARY">Secondary</option>
+            <option value="RURAL">Rural</option>
+            <option value="URBAN">Urban</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Status</label>
+          <select [(ngModel)]="filters.status" (change)="applyFilters()">
+            <option value="">All Status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            <option value="SUSPENDED">Suspended</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Customer Code</label>
+          <input type="text" 
+                 [(ngModel)]="filters.customerCode" 
+                 (input)="applyFilters()"
+                 placeholder="Enter customer code">
+        </div>
+        <div class="filter-actions">
+          <button class="btn btn-secondary btn-sm" (click)="clearFilters()">
+            <i class="fa fa-times"></i> Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  
+    <!-- Results Section -->
+    <div class="results-section">
+      <!-- Results Header with Bulk Actions -->
+      <div class="results-header">
+        <div class="results-info">
+          <span>Showing {{ getCurrentPageCustomers().length }} of {{ filteredCustomers.length }} customers</span>
+          <div class="sort-controls">
+            <label>Sort by:</label>
+            <select [(ngModel)]="sortBy" (change)="applyFiltersAndSort()">
+              <option value="customerName">Name</option>
+              <option value="customerCode">Customer Code</option>
+              <option value="mobile">Mobile</option>
+              <option value="createdAt">Date Added</option>
+            </select>
+            <button class="btn btn-sm" (click)="sortCustomers(sortBy)">
+              <i class="fa" [class.fa-sort-up]="sortDirection === 'asc'" 
+                           [class.fa-sort-down]="sortDirection === 'desc'"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="bulk-actions-row">
+          <div class="select-all" *ngIf="getCurrentPageCustomers().length > 0">
+            <label class="checkbox-label">
+              <input type="checkbox" 
+                     [checked]="areAllCurrentPageCustomersSelected()"
+                     (change)="selectAllCustomers()">
+              Select All
+            </label>
+          </div>
+  
+          <div class="bulk-actions" *ngIf="hasSelectedCustomers()">
+            <button class="btn btn-danger btn-sm" (click)="deleteSelectedCustomers()">
+              <i class="fa fa-trash"></i> Delete ({{ getSelectedCount() }})
+            </button>
+            <button class="btn btn-success btn-sm" (click)="exportCustomers()">
+              <i class="fa fa-download"></i> Export
+            </button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <i class="fa fa-spinner fa-spin"></i>
+        <span>Loading customers...</span>
+      </div>
+  
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && filteredCustomers.length === 0" class="empty-state">
+        <i class="fa fa-users"></i>
+        <h3>No customers found</h3>
+        <p *ngIf="searchTerm || hasFilters()">
+          Try adjusting your search or filters to find customers.
+        </p>
+        <p *ngIf="!searchTerm && !hasFilters()">
+          Get started by adding your first customer.
+        </p>
+        <button class="btn btn-primary" (click)="addNewCustomer()">
+          <i class="fa fa-plus"></i> Add Customer
+        </button>
+      </div>
+  
+      <!-- Grid View -->
+      <div *ngIf="!isLoading && filteredCustomers.length > 0 && viewMode === 'grid'" class="customer-grid">
+        <div *ngFor="let customer of getCurrentPageCustomers()" 
+             class="customer-card"
+             [class.selected]="isCustomerSelected(customer.id!)">
+          
+          <!-- Card Header -->
+          <div class="card-header">
+            <label class="checkbox-label">
+              <input type="checkbox" 
+                     [checked]="isCustomerSelected(customer.id!)"
+                     (change)="selectCustomer(customer.id!)">
+            </label>
+            <div class="customer-status">
+              <span class="status-badge" [class]="'status-badge ' + getStatusClass(customer.status)">
+                {{ customer.status || 'ACTIVE' }}
+              </span>
+            </div>
+            <div class="card-actions">
+              <button class="btn-icon" (click)="editCustomer(customer)" title="Edit">
+                <i class="fa fa-edit"></i>
+              </button>
+              <button class="btn-icon" (click)="deleteCustomer(customer)" title="Delete">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div>
+          </div>
+  
+          <!-- Customer Photo and Info -->
+          <div class="card-body" (click)="viewCustomer(customer)">
+            <div class="customer-photo">
+              <img [src]="getCustomerImage(customer)" 
+                   [alt]="customer.customerName"
+                   class="profile-image">
+              <div class="verification-badges">
+                <span *ngFor="let badge of getVerificationBadges(customer)" 
+                      class="verification-badge">
+                  {{ badge }}
+                </span>
+              </div>
+            </div>
+            
+            <div class="customer-info">
+              <h4 class="customer-name">{{ customer.customerName }}</h4>
+              <p class="customer-code">{{ customer.customerCode }}</p>
+              <p class="customer-relation">{{  customer.relationshipName}}</p>
+              <p class="customer-relation">{{ customer.relationName }}</p>
+          
+             
+            </div>
+          </div>
+  
+          <!-- Card Footer -->
+          <div class="card-footer">
+            <div class="contact-info">
+              <div class="contact-item">
+                <i class="fa fa-phone"></i>
+                <span>{{ customer.mobile }}</span>
+              </div>
+              <div class="contact-item" *ngIf="customer.contactInfo.email">
+                <i class="fa fa-envelope"></i>
+                <span>{{ customer.contactInfo.email }}</span>
+              </div>
+              <div class="contact-item">
+                <i class="fa fa-map-marker"></i>
+                <span>{{ customer.addressInfo.city }}, {{ customer.addressInfo.state }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- List View -->
+      <div *ngIf="!isLoading && filteredCustomers.length > 0 && viewMode === 'list'" class="customer-list">
+        <div class="list-header">
+          <div class="list-col col-select">
+            <input type="checkbox" 
+                   [checked]="areAllCurrentPageCustomersSelected()"
+                   (change)="selectAllCustomers()">
+          </div>
+          <div class="list-col col-photo">Photo</div>
+          <div class="list-col col-name" (click)="sortCustomers('customerName')">
+            Name <i class="fa fa-sort"></i>
+          </div>
+          <div class="list-col col-code" (click)="sortCustomers('customerCode')">
+            Code <i class="fa fa-sort"></i>
+          </div>
+          <div class="list-col col-mobile" (click)="sortCustomers('mobile')">
+            Mobile <i class="fa fa-sort"></i>
+          </div>
+          <div class="list-col col-area">Area</div>
+          <div class="list-col col-status">Status</div>
+          <div class="list-col col-actions">Actions</div>
+        </div>
+  
+        <div *ngFor="let customer of getCurrentPageCustomers()" 
+             class="list-row"
+             [class.selected]="isCustomerSelected(customer.id!)">
+          
+          <div class="list-col col-select">
+            <input type="checkbox" 
+                   [checked]="isCustomerSelected(customer.id!)"
+                   (change)="selectCustomer(customer.id!)">
+          </div>
+          
+          <div class="list-col col-photo" >
+            <img [src]="getCustomerImage(customer)" 
+                 [alt]="customer.customerName"
+                 class="list-profile-image">
+          </div>
+          
+          <div class="list-col col-name">
+            <div class="customer-name-info" (click)="viewCustomer(customer)">
+              <strong>{{ customer.customerName }}</strong>
+              <small>{{ customer.relationshipName }}</small>
+              <small>{{ customer.relationName }}</small>
+              <div class="verification-badges">
+                <span *ngFor="let badge of getVerificationBadges(customer)" 
+                      class="verification-badge small">
+                  {{ badge }}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="list-col col-code">
+            {{ customer.customerCode }}
+          </div>
+          
+          <div class="list-col col-mobile">
+            {{ customer.mobile }}
+          </div>
+          
+          <div class="list-col col-area">
+            {{ customer.addressInfo.area }}
+          </div>
+          
+          <div class="list-col col-status">
+            <span class="status-badge" [class]="'status-badge ' + getStatusClass(customer.status)">
+              {{ customer.status || 'ACTIVE' }}
+            </span>
+          </div>
+          
+          <div class="list-col col-actions">
+            <button class="btn-icon" (click)="viewCustomer(customer)" title="View">
+              <i class="fa fa-eye"></i>
+            </button>
+            <button class="btn-icon" (click)="editCustomer(customer)" title="Edit">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button class="btn-icon" (click)="deleteCustomer(customer)" title="Delete">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="pagination-section">
+        <div class="pagination-info">
+          Page {{ currentPage }} of {{ totalPages }}
+        </div>
+        
+        <div class="pagination-controls">
+          <button class="btn btn-sm" 
+                  [disabled]="currentPage === 1" 
+                  (click)="prevPage()">
+            <i class="fa fa-chevron-left"></i> Previous
+          </button>
+          
+          <div class="page-numbers">
+            <button *ngFor="let page of getPageNumbers()"
+                    class="page-btn"
+                    [class.active]="currentPage === page"
+                    [class.ellipsis]="page === -1"
+                    [disabled]="page === -1"
+                    (click)="goToPage(page)">
+              {{ page === -1 ? '...' : page }}
+            </button>
+          </div>
+          
+          <button class="btn btn-sm" 
+                  [disabled]="currentPage === totalPages" 
+                  (click)="nextPage()">
+            Next <i class="fa fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>

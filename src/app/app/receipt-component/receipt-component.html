@@ -1,0 +1,346 @@
+<div class="redemption-container">
+  <div class="header-section">
+    <div class="page-title">
+      <i class="icon-redemption"></i>
+      <h1>Loan Receipt / Payment</h1>
+      <span class="badge-new">Create New</span>
+    </div>
+    <div class="header-actions">
+      <input type="text" class="search-input" placeholder="Type here to Search">
+      <button class="btn-actions">
+        <i class="icon-actions"></i> Actions
+      </button>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+    <div class="left-panel">
+      <div class="form-section">
+        <div class="section-header">
+          <h3>Series</h3>
+          <span class="status-indicator success"></span>
+        </div>
+        <input type="text" value="Loan Receipt" class="form-control" readonly>
+      </div>
+
+      <div class="form-row">
+        <div class="form-section half">
+          <label>Receipt Date</label>
+          <input type="date" class="form-control" [(ngModel)]="redemptionDate">
+        </div>
+        <div class="form-section half">
+          <label>Till Date</label>
+          <input type="date" class="form-control" [(ngModel)]="tillDate" (change)="onTillDateChange()">
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label>Loan Number</label>
+        <div class="loan-select-wrapper">
+          <input 
+            type="text" 
+            class="form-control" 
+            [(ngModel)]="selectedLoanNo"
+            (change)="onLoanSelect()"
+            placeholder="Enter loan number">
+          <button class="btn-clear" *ngIf="selectedLoanNo" (click)="clearLoan()">×</button>
+          <span class="status-indicator success" *ngIf="loanData"></span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label>Select by Customer</label>
+        <div class="customer-select-wrapper">
+          <input 
+            type="text" 
+            class="form-control" 
+            [value]="loanData?.customerName"
+            readonly>
+          <span class="status-indicator success" *ngIf="loanData"></span>
+        </div>
+      </div>
+
+      <div class="payment-details-card">
+        <div class="detail-row">
+          <label>Original Principal</label>
+          <div class="value-display muted">{{ loanData?.principal | number:'1.2-2' }}</div>
+        </div>
+        <div class="detail-row highlight-row">
+          <label>Outstanding Principal</label>
+          <div class="value-display primary">{{ outstandingPrincipal | number:'1.2-2' }}</div>
+        </div>
+        <div class="detail-row">
+          <label>Interest</label>
+          <div class="value-display">{{ calculatedInterest | number:'1.2-2' }}</div>
+        </div>
+        <div class="detail-row">
+          <label>Other Credits</label>
+          <input type="number" class="form-control-inline" [(ngModel)]="otherCredits" (ngModelChange)="calculateNetPayable()">
+        </div>
+        <div class="detail-row">
+          <label>Other Debits</label>
+          <input type="number" class="form-control-inline" [(ngModel)]="otherDebits" (ngModelChange)="calculateNetPayable()">
+        </div>
+        <div class="detail-row">
+          <label>Default Amount</label>
+          <input type="number" class="form-control-inline" [(ngModel)]="defaultAmount" (ngModelChange)="calculateNetPayable()">
+        </div>
+        <div class="detail-row">
+          <label>Add / Less</label>
+          <input type="number" class="form-control-inline" [(ngModel)]="addLess" (ngModelChange)="calculateNetPayable()">
+        </div>
+      </div>
+
+      <div class="net-payable-section">
+        <label>Net Payable</label>
+        <div class="amount-display">{{ netPayable | number:'1.2-2' }}</div>
+      </div>
+
+      <div class="collection-section">
+        <label>Collection Amount</label>
+        <input 
+          type="number" 
+          class="form-control-amount" 
+          [(ngModel)]="collectionAmount" 
+          (ngModelChange)="onCollectionAmountChange()"
+          placeholder="Enter collection amount">
+      </div>
+
+      <!-- Payment Distribution -->
+      <div class="payment-distribution-card" *ngIf="collectionAmount > 0">
+        <h4>Payment Distribution</h4>
+        <div class="distribution-row">
+          <label>Interest Paid:</label>
+          <span class="amount">{{ interestPaid | number:'1.2-2' }}</span>
+        </div>
+        <div class="distribution-row">
+          <label>Principal Paid:</label>
+          <span class="amount">{{ principalPaid | number:'1.2-2' }}</span>
+        </div>
+        <div class="distribution-row highlight">
+          <label>Balance Interest:</label>
+          <span class="amount">{{ balanceInterest | number:'1.2-2' }}</span>
+        </div>
+        <div class="distribution-row highlight">
+          <label>Balance Principal:</label>
+          <span class="amount">{{ balancePrincipal | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <label>Remarks</label>
+        <textarea class="form-control" rows="3" [(ngModel)]="remarks" placeholder="Enter any remarks"></textarea>
+      </div>
+
+      <div class="form-section">
+        <button class="btn-payment-modes" (click)="togglePaymentModes()">
+          <i class="fa fa-wallet"></i> Payment Modes
+        </button>
+      </div>
+
+      <!-- Payment Modes Section -->
+      <div class="payment-modes-section" *ngIf="showPaymentModes">
+        <div class="payment-modes-header">
+          <h4>Payment Modes</h4>
+          <button class="btn-add-mode" (click)="addPaymentMode()">
+            <i class="fa fa-plus"></i> Add Mode
+          </button>
+        </div>
+        
+        <div class="payment-mode-list">
+          <div class="payment-mode-row" *ngFor="let pm of paymentModes; let i = index">
+            <select class="form-control mode-select" [(ngModel)]="pm.mode">
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="UPI">UPI</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+            
+            <input 
+              type="number" 
+              class="form-control amount-input" 
+              [(ngModel)]="pm.amount" 
+              (ngModelChange)="onPaymentModeAmountChange()"
+              placeholder="Amount">
+            
+            <input 
+              type="text" 
+              class="form-control ref-input" 
+              [(ngModel)]="pm.reference" 
+              placeholder="Reference/Txn ID">
+            
+            <button 
+              class="btn-remove-mode" 
+              (click)="removePaymentMode(i)" 
+              *ngIf="paymentModes.length > 1">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="payment-modes-total">
+          <label>Total:</label>
+          <span class="total-amount">
+            {{ getPaymentModesTotal() | number:'1.2-2' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="btn-save" (click)="saveRedemption()" [disabled]="isLoading">
+          <i class="fa fa-save"></i> {{ isLoading ? 'Saving...' : 'Save' }}
+        </button>
+        <button class="btn-delete" (click)="deleteRedemption()">
+          <i class="fa fa-trash"></i> Delete
+        </button>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="customer-card" *ngIf="loanData">
+        <div class="customer-header">
+          <img [src]="loanData.customerPhoto" alt="Customer Photo" class="customer-photo">
+          <div class="customer-info">
+            <h2>{{ loanData.customerName }}</h2>
+            <p class="customer-relation">{{ loanData.relation }}</p>
+            <p class="customer-address">{{ loanData.address }}</p>
+            <p class="customer-city">{{ loanData.city }}</p>
+            <div class="customer-contact">
+              <i class="fa fa-phone"></i>
+              <span>{{ loanData.phone }}</span>
+            </div>
+          </div>
+          <div class="customer-meta">
+            <div class="code-badge">Code: {{ loanData.customerCode }}</div>
+            <div class="loan-status-badge">{{ loanData.loanStatus }}</div>
+          </div>
+        </div>
+
+        <div class="loan-summary-card">
+          <div class="summary-grid">
+            <div class="summary-item">
+              <label>Loan No</label>
+              <div class="value">{{ loanData.loanNo }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Date</label>
+              <div class="value">{{ loanData.loanDate }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Item Group</label>
+              <div class="value">{{ loanData.itemGroup }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Scheme</label>
+              <div class="value">{{ loanData.schemeName }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Principal</label>
+              <div class="value">{{ loanData.principal | number:'1.2-2' }}</div>
+            </div>
+            <div class="summary-item highlight">
+              <label>Outstanding Principal</label>
+              <div class="value highlight">{{ outstandingPrincipal | number:'1.2-2' }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Mature Date</label>
+              <div class="value">{{ loanData.maturityDate }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Location</label>
+              <div class="value">{{ loanData.location }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Loan Age</label>
+              <div class="value age-warning">{{ loanData.loanAge }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Weights</label>
+              <div class="value">{{ loanData.weights }}</div>
+            </div>
+            <div class="summary-item">
+              <label>Last Receipt</label>
+              <div class="value">{{ loanData.lastReceipt }}</div>
+            </div>
+          </div>
+
+          <div class="items-section">
+            <label>Items:</label>
+            <span>{{ loanData.items }}</span>
+          </div>
+        </div>
+
+        <!-- Item Photo Gallery with Navigation -->
+        <div class="item-card">
+          <div class="image-navigation" *ngIf="loanData.itemPhotos.length > 1">
+            <button class="nav-btn prev-btn" (click)="previousImage()">
+              <i class="fa fa-chevron-left"></i>
+            </button>
+            <button class="nav-btn next-btn" (click)="nextImage()">
+              <i class="fa fa-chevron-right"></i>
+            </button>
+          </div>
+          
+          <img [src]="getCurrentImage()" alt="Pledged Item" class="item-photo">
+          
+          <div class="item-overlay">
+            <span class="item-tag">{{ loanData.itemGroup }}</span>
+            <span class="image-counter" *ngIf="loanData.itemPhotos.length > 1">
+              {{ currentImageIndex + 1 }} / {{ loanData.itemPhotos.length }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="interest-statement-section" *ngIf="loanData">
+        <h3 class="section-title">Interest Statement</h3>
+        <div class="table-wrapper">
+          <table class="interest-table">
+            <thead>
+              <tr>
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Duration</th>
+                <th>Int Accrued</th>
+                <th>Tot Accrued</th>
+                <th>Int Paid</th>
+                <th>Principal Paid</th>
+                <th>Added Principal</th>
+                <th>Adj Principal</th>
+                <th>New Principal</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let statement of interestStatements" 
+                  [class.paid-row]="statement.isPaid"
+                  [class.unpaid-row]="!statement.isPaid">
+                <td>{{ statement.fromDate }}</td>
+                <td>{{ statement.toDate }}</td>
+                <td>{{ statement.duration }}</td>
+                <td>{{ statement.intAccrued | number:'1.0-0' }}</td>
+                <td>{{ statement.totAccrued | number:'1.0-0' }}</td>
+                <td>{{ statement.intPaid | number:'1.0-0' }}</td>
+                <td>{{ statement.principalPaid | number:'1.0-0' }}</td>
+                <td>{{ statement.addedPrincipal | number:'1.0-0' }}</td>
+                <td>{{ statement.adjPrincipal | number:'1.0-0' }}</td>
+                <td class="principal-cell">{{ statement.newPrincipal | number:'1.0-0' }}</td>
+                <td class="status-cell">
+                  <span class="status-badge" [class.paid]="statement.isPaid" [class.unpaid]="!statement.isPaid">
+                    {{ statement.isPaid ? 'Paid' : 'Pending' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="redemption-number-section">
+        <label>Receipt Number</label>
+        <div class="redemption-number">{{ redemptionNumber }}</div>
+      </div>
+    </div>
+  </div>
+</div>

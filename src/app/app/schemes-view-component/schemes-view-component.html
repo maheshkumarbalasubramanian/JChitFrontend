@@ -1,0 +1,216 @@
+<div class="schemes-container">
+  <div class="header">
+    <h1>
+      <i class="fa fa-university"></i>
+      Gold Loan Schemes
+    </h1>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="refreshData()" [disabled]="isLoading">
+        <i class="fa fa-sync" [class.fa-spin]="isLoading"></i>
+        Refresh
+      </button>
+      <button class="btn btn-primary" (click)="addNewScheme()">
+        <i class="fa fa-plus"></i>
+        Create New
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-section">
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon"><i class="fa fa-list"></i></div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.total }}</div>
+          <div class="stat-label">Total Schemes</div>
+        </div>
+      </div>
+      <div class="stat-card active">
+        <div class="stat-icon"><i class="fa fa-check-circle"></i></div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.active }}</div>
+          <div class="stat-label">Active</div>
+        </div>
+      </div>
+      <div class="stat-card inactive">
+        <div class="stat-icon"><i class="fa fa-pause-circle"></i></div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.inactive }}</div>
+          <div class="stat-label">Inactive</div>
+        </div>
+      </div>
+      <div class="stat-card calculation">
+        <div class="stat-icon"><i class="fa fa-calculator"></i></div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.simple + stats.compound + stats.emi }}</div>
+          <div class="stat-label">Calculation Types</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="controls-section">
+    <div class="search-container">
+      <div class="search-box">
+        <i class="fa fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search by code, name, area, or item group..." 
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()">
+      </div>
+    </div>
+    <div class="filter-controls">
+      <select [(ngModel)]="statusFilter" (change)="applyFilters()" class="filter-select">
+        <option value="">All Status</option>
+        <option value="active">Active Only</option>
+        <option value="inactive">Inactive Only</option>
+      </select>
+      <select [(ngModel)]="calculationFilter" (change)="applyFilters()" class="filter-select">
+        <option value="">All Methods</option>
+        <option value="Simple">Simple Interest</option>
+        <option value="Compound">Compound Interest</option>
+        <option value="Emi">EMI</option>
+        <option value="Multiple">Multiple</option>
+        <option value="Customized">Customized</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <i class="fa fa-spinner fa-spin"></i>
+    </div>
+    <p>Loading schemes...</p>
+  </div>
+
+  <!-- Schemes Table -->
+  <div class="table-container" *ngIf="!isLoading">
+    <table class="schemes-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th (click)="sortBy('schemeCode')" class="sortable">
+            Scheme Code
+            <i class="fa fa-sort" [class.fa-sort-up]="sortField === 'schemeCode' && sortDirection === 'asc'"
+               [class.fa-sort-down]="sortField === 'schemeCode' && sortDirection === 'desc'"></i>
+          </th>
+          <th (click)="sortBy('schemeName')" class="sortable">
+            Scheme Name
+            <i class="fa fa-sort" [class.fa-sort-up]="sortField === 'schemeName' && sortDirection === 'asc'"
+               [class.fa-sort-down]="sortField === 'schemeName' && sortDirection === 'desc'"></i>
+          </th>
+          <th>Area</th>
+          <th>Item Group</th>
+          <th (click)="sortBy('roi')" class="sortable">
+            ROI
+            <i class="fa fa-sort" [class.fa-sort-up]="sortField === 'roi' && sortDirection === 'asc'"
+               [class.fa-sort-down]="sortField === 'roi' && sortDirection === 'desc'"></i>
+          </th>
+          <th>Calc Method</th>
+          <th>Active Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let scheme of getPaginatedSchemes(); let i = index" 
+            [class.selected]="selectedSchemeId === scheme.id">
+          <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+          <td class="scheme-code">{{ scheme.schemeCode }}</td>
+          <td class="scheme-name">{{ scheme.schemeName }}</td>
+          <td class="area-cell">
+            <span class="area-badge" *ngIf="scheme.areaName">{{ scheme.areaName }}</span>
+            <span class="text-muted" *ngIf="!scheme.areaName">-</span>
+          </td>
+          <td class="item-group-cell">
+            <span class="item-group-badge" *ngIf="scheme.itemGroupName">{{ scheme.itemGroupName }}</span>
+            <span class="text-muted" *ngIf="!scheme.itemGroupName">-</span>
+          </td>
+          <td class="roi-cell">
+            <span class="roi-badge">{{ scheme.roi }}%</span>
+          </td>
+          <td>
+            <span class="calc-method-badge" [ngClass]="getCalculationMethodClass(scheme.calculationMethod)">
+              {{ scheme.calculationMethod }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [class.active]="scheme.isActive" [class.inactive]="!scheme.isActive">
+              {{ scheme.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="action-btn view" (click)="viewScheme(scheme)" title="View Details">
+                <i class="fa fa-eye"></i>
+              </button>
+              <button class="action-btn edit" (click)="editScheme(scheme)" title="Edit Scheme">
+                <i class="fa fa-edit"></i>
+              </button>
+              <button class="action-btn toggle" 
+                      (click)="toggleSchemeStatus(scheme)" 
+                      [title]="scheme.isActive ? 'Deactivate Scheme' : 'Activate Scheme'">
+                <i class="fa" [class.fa-toggle-on]="scheme.isActive" 
+                              [class.fa-toggle-off]="!scheme.isActive"></i>
+              </button>
+              <button class="action-btn delete" (click)="deleteScheme(scheme)" title="Delete Scheme">
+                <i class="fa fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="filteredSchemes.length === 0">
+      <i class="fa fa-university"></i>
+      <h3>No schemes found</h3>
+      <p *ngIf="searchTerm || statusFilter || calculationFilter">
+        Try adjusting your search criteria or filters
+      </p>
+      <p *ngIf="!searchTerm && !statusFilter && !calculationFilter">
+        Create your first gold loan scheme to get started
+      </p>
+      <button class="btn btn-primary" (click)="addNewScheme()">
+        <i class="fa fa-plus"></i> Create Scheme
+      </button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="filteredSchemes.length > 0 && !isLoading">
+    <div class="pagination-info">
+      <span>Items per page</span>
+      <select [(ngModel)]="itemsPerPage" (change)="updatePagination()" class="items-per-page">
+        <option [value]="5">5</option>
+        <option [value]="10">10</option>
+        <option [value]="25">25</option>
+        <option [value]="50">50</option>
+        <option [value]="100">100</option>
+      </select>
+      <span>{{ getCurrentPageInfo() }}</span>
+    </div>
+    <div class="pagination-controls">
+      <button class="btn btn-outline btn-sm" (click)="previousPage()" [disabled]="currentPage === 1">
+        <i class="fa fa-chevron-left"></i>
+      </button>
+      <span class="page-numbers">
+        <button 
+          *ngFor="let page of getPageNumbers()" 
+          class="btn btn-sm"
+          [class.btn-primary]="page === currentPage"
+          [class.btn-outline]="page !== currentPage"
+          (click)="goToPage(page)">
+          {{ page }}
+        </button>
+      </span>
+      <button class="btn btn-outline btn-sm" (click)="nextPage()" [disabled]="currentPage === getTotalPages()">
+        <i class="fa fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
