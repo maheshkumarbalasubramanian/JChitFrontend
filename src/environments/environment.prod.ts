@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://jewelchitbackend-production.up.railway.app'
+  apiUrl: 'http://jewelchitbackend-production.up.railway.app'
 };
 
